@@ -34,3 +34,16 @@ class FileUploadTest(unittest.TestCase):
         self.failUnlessEqual(f.file_name, 'music.mp3')
         self.failUnless(f.owner == self.gigel)
         self.client.logout()
+    
+    def test_file_listing(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        self.client.post('/upload', {'file': make_file('music2.mp3', '..data..')})
+        self.client.post('/upload', {'file': make_file('music3.mp3', '..data..')})
+        response = self.client.get('/files/gigel')
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('music1.mp3' in response.content)
+        self.failUnless('music2.mp3' in response.content)
+        self.failUnless('music3.mp3' in response.content)
+        MusicFile.objects.filter(owner=self.gigel).delete()
+        self.client.logout()

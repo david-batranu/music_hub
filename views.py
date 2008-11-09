@@ -1,7 +1,8 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import User
 
-from models import MusicFileForm
+from models import MusicFile, MusicFileForm
 
 def upload(request):
     if request.method == 'POST':
@@ -16,3 +17,8 @@ def upload(request):
         form = MusicFileForm()
     
     return render_to_response('file_upload.html', {'form': form})
+
+def file_listing(request, username):
+    user = get_object_or_404(User, username=username)
+    files = MusicFile.objects.filter(owner=user)
+    return render_to_response('file_list.html', {'files': files})
