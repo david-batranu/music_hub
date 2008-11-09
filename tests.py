@@ -115,7 +115,42 @@ class SingleFileTest(unittest.TestCase):
 class OtherPagesTest(unittest.TestCase):
     def setUp(self):
         self.client = Client()
+        self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
+    
+    def tearDown(self):
+        self.gigel.delete()
     
     def test_404(self):
         response = self.client.get('/no_such_file')
         self.failUnlessEqual(response.status_code, 404)
+    
+    def test_login(self):
+        # login page
+        response = self.client.get('/auth')
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('Log in' in response.content)
+        self.failUnless('<form' in response.content)
+        
+        # submit login (bad user)
+        response = self.client.post('/auth', {'do': 'login', 'username': 'bebe', 'password': '123'})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('Please enter a correct username and password' in response.content)
+        
+        # submit login (good user)
+        response = self.client.post('/auth', {'do': 'login', 'username': 'gigel', 'password': 'gigi'})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('You are logged in as gigel' in self.client.get('/auth').content)
+    
+    def test_logout(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        
+        # check auth page
+        response = self.client.get('/auth')
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('You are logged in as gigel' in self.client.get('/auth').content)
+        
+        # check log out
+        response = self.client.post('/auth', {'do': 'logout'})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('Log in' in response.content)
+        self.failUnless('<form' in response.content)

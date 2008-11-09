@@ -1,10 +1,6 @@
-import os
 from django.shortcuts import render_to_response, get_object_or_404
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User, AnonymousUser
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseBadRequest
-from django.core.servers.basehttp import FileWrapper
 from django.conf import settings
 
 from models import MusicFile, MusicFileForm
@@ -26,6 +22,7 @@ def upload(request):
     return render_to_response('file_upload.html', {'form': form})
 
 def delete(request):
+    from django.core.exceptions import ObjectDoesNotExist
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
     
@@ -48,6 +45,8 @@ def file_listing(request, username):
     return render_to_response('file_list.html', {'files': files})
 
 def get_file(request, file_code):
+    import os
+    from django.core.servers.basehttp import FileWrapper
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden('Only logged-in users can download files.')
     
@@ -60,3 +59,36 @@ def get_file(request, file_code):
     response['Content-Disposition'] = 'attachment; filename=%s' % music_file.file_name
     response['Content-Length'] = os.path.getsize(file_path)
     return response
+
+def auth(request):
+    from django.contrib.auth.forms import AuthenticationForm
+    from django.contrib.auth import login, logout
+    
+    if isinstance(request.user, AnonymousUser):
+        if request.method == 'POST':
+            if request.POST.get('do', None) != 'login':
+                return HttpResponseBadRequest('Logged-in users can only perform logout.')
+            
+            auth_form = AuthenticationForm(request, request.POST)
+            if auth_form.is_valid():
+                login(request, auth_form.get_user())
+                if request.session.test_cookie_worked():
+                    request.session.delete_test_cookie()
+                return render_to_response('auth_logged_in.html', {'user': request.user})
+        
+        else:
+            auth_form = AuthenticationForm()
+        
+        request.session.set_test_cookie()
+        return render_to_response('auth_login.html', {'auth_form': auth_form})
+    
+    else:
+        if request.method == 'POST':
+            if request.POST.get('do', None) != 'logout':
+                return HttpResponseBadRequest('Logged-in users can only perform logout.')
+            
+            logout(request)
+            return render_to_response('auth_login.html', {'auth_form': AuthenticationForm()})
+        
+        else:
+            return render_to_response('auth_logged_in.html', {'user': request.user})

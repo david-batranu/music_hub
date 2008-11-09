@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block body %}
+<form action="/auth" method="POST">
+<h3>Log in</h3>
+<ul>
+{{ auth_form.as_ul }}
+</ul>
+<input type="submit" value="Log in">
+</form>
+{% endblock %}

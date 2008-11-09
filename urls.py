@@ -13,5 +13,7 @@ urlpatterns = patterns('',
     (r'^list/(?P<username>[^/]+)$', 'music_hub.views.file_listing'),
     (r'^files/(?P<file_code>[0-9a-f]+)$', 'music_hub.views.get_file'),
     
+    (r'^auth$', 'music_hub.views.auth'),
+    
     (r'^admin/(.*)', admin.site.root),
 )
