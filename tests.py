@@ -53,20 +53,19 @@ class SingleFileTest(unittest.TestCase):
         
         # bad request (GET)
         response = self.client.get('/delete')
-        self.failUnlessEqual(response.status_code, 200)
-        self.failUnless('Only POST requests are allowed' in response.content)
+        self.failUnlessEqual(response.status_code, 405)
         
         # no such file
         response = self.client.post('/delete')
-        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(response.status_code, 400)
         self.failUnless('The file does not exist' in response.content)
         response = self.client.post('/delete', {'file': 13})
-        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(response.status_code, 400)
         self.failUnless('The file does not exist' in response.content)
         
         # bad user
         response = self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music.mp3').id})
-        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(response.status_code, 403)
         self.failUnless('This file is not yours to delete' in response.content)
         
         # the correct request
@@ -80,12 +79,37 @@ class SingleFileTest(unittest.TestCase):
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
         self.client.post('/upload', {'file': make_file('music2.mp3', '..data..')})
         self.client.post('/upload', {'file': make_file('music3.mp3', '..data..')})
-        response = self.client.get('/files/gigel')
+        response = self.client.get('/list/gigel')
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('music1.mp3' in response.content)
         self.failUnless('music2.mp3' in response.content)
         self.failUnless('music3.mp3' in response.content)
-        MusicFile.objects.filter(owner=self.gigel).delete()
+        self.client.logout()
+    
+    def test_get_file(self):
+        # upload the file
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        self.client.logout()
+        
+        # bad user
+        file_code = MusicFile.objects.get(file_name='music1.mp3').file.name[:-4]
+        response = self.client.get('/files/%s' % file_code)
+        self.failUnlessEqual(response.status_code, 403)
+        
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        
+        # no such file
+        response = self.client.get('/files/a7c22186f41799f76f0a2534794543e5ac555eae')
+        self.failUnlessEqual(response.status_code, 404)
+        
+        # correct request
+        response = self.client.get('/files/%s' % file_code)
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(response['Content-Disposition'], 'attachment; filename=music1.mp3')
+        self.failUnlessEqual(response['Content-Length'], '8')
+        self.failUnlessEqual(response.content, '..data..')
+        
         self.client.logout()
 
 class OtherPagesTest(unittest.TestCase):
