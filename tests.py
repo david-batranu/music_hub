@@ -19,10 +19,12 @@ class FileUploadTest(unittest.TestCase):
         self.gigel.delete()
     
     def test_upload_form(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
         response = self.client.get('/upload')
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('File' in response.content)
         self.failIf('Owner' in response.content)
+        self.client.logout()
     
     def test_one_upload(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
@@ -34,6 +36,13 @@ class FileUploadTest(unittest.TestCase):
         self.failUnlessEqual(f.file_name, 'music.mp3')
         self.failUnless(f.owner == self.gigel)
         self.client.logout()
+    
+    def test_without_user(self):
+        response = self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
+        self.failIf('success' in response.content)
+        self.failUnless('log in' in response.content)
+        response = self.client.get('/upload')
+        self.failUnless('log in' in response.content)
     
     def test_file_listing(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))

@@ -1,10 +1,12 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 
 from models import MusicFile, MusicFileForm
 
 def upload(request):
+    if isinstance(request.user, AnonymousUser):
+        return render_to_response('error.html', {'message': "You need to log in."})
     if request.method == 'POST':
         form = MusicFileForm(request.POST, request.FILES)
         if form.is_valid():
