@@ -9,6 +9,7 @@ def upload(request):
         if form.is_valid():
             music_file = form.save(commit=False)
             music_file.owner = request.user
+            music_file.file_name = request.FILES['file'].name
             music_file.save()
             return render_to_response('file_upload_done.html', {})
     else:

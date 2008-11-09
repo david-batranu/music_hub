@@ -12,10 +12,14 @@ def generate_mp3_filename(instance, filename):
 class MusicFile(models.Model):
     owner = models.ForeignKey(User)
     file = models.FileField(upload_to=generate_mp3_filename)
+    file_name = models.CharField(max_length=256)
+    
+    def __unicode__(self):
+        return u'MusicFile "%s"' % self.file_name
 
 admin.site.register(MusicFile)
 
 class MusicFileForm(forms.ModelForm):
     class Meta:
         model = MusicFile
-        exclude = ['owner']
+        fields = ['file']

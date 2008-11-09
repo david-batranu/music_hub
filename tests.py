@@ -13,10 +13,10 @@ def make_file(name, data):
 class FileUploadTest(unittest.TestCase):
     def setUp(self):
         self.client = Client()
-        User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
+        self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
     
     def tearDown(self):
-        User.objects.get(username='gigel').delete()
+        self.gigel.delete()
     
     def test_upload_form(self):
         response = self.client.get('/upload')
@@ -28,9 +28,9 @@ class FileUploadTest(unittest.TestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         response = self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
         self.failUnlessEqual(response.status_code, 200)
-        print response.content
         self.failUnless('success' in response.content)
         f = MusicFile.objects.get()
         self.failUnless(f.file.name.endswith('.mp3'))
-        self.failUnless(f.owner == User.objects.get(username='gigel'))
+        self.failUnlessEqual(f.file_name, 'music.mp3')
+        self.failUnless(f.owner == self.gigel)
         self.client.logout()
