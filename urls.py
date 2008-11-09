@@ -9,6 +9,7 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     
     (r'^upload$', 'music_hub.views.upload'),
+    (r'^delete$', 'music_hub.views.delete'),
     (r'^files/(?P<username>[^/]+)', 'music_hub.views.file_listing'),
     
     (r'^admin/(.*)', admin.site.root),

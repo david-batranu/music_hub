@@ -44,6 +44,37 @@ class FileUploadTest(unittest.TestCase):
         response = self.client.get('/upload')
         self.failUnless('log in' in response.content)
     
+    def test_remove_file(self):
+        # upload the file
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
+        self.failUnlessEqual(MusicFile.objects.filter(file_name='music.mp3').count(), 1)
+        self.client.logout()
+        
+        # bad request (GET)
+        response = self.client.get('/delete')
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('Only POST requests are allowed' in response.content)
+        
+        # no such file
+        response = self.client.post('/delete')
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('The file does not exist' in response.content)
+        response = self.client.post('/delete', {'file': 13})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('The file does not exist' in response.content)
+        
+        # bad user
+        response = self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music.mp3').id})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('This file is not yours to delete' in response.content)
+        
+        # the correct request
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music.mp3').id})
+        self.failUnlessEqual(MusicFile.objects.filter(file_name='music.mp3').count(), 0)
+        self.client.logout()
+    
     def test_file_listing(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
