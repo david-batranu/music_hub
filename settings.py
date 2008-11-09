@@ -1,6 +1,9 @@
 # Django settings for music_hub project.
 
-MUSIC_HUB_FOLDER = '/tmp/'
+try:
+    from localsettings import MUSIC_HUB_FOLDER
+except ImportError:
+    MUSIC_HUB_FOLDER = '/tmp/'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -20,12 +23,12 @@ USE_I18N = False
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = MUSIC_HUB_FOLDER + 'media/'
+MEDIA_ROOT = MUSIC_HUB_FOLDER + 'files/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/media/'
+MEDIA_URL = '/files/'
 
 ADMIN_MEDIA_PREFIX = '/admin-media/'
 
@@ -47,5 +50,6 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.admin',
     'music_hub',
 )

@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     
-    Uncomment the next line to enable the admin:
+    (r'^upload$', 'music_hub.views.upload'),
+    
     (r'^admin/(.*)', admin.site.root),
 )
