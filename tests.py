@@ -10,7 +10,7 @@ def make_file(name, data):
     f.name = name
     return f
 
-class FileUploadTest(unittest.TestCase):
+class SingleFileTest(unittest.TestCase):
     def setUp(self):
         self.client = Client()
         self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
@@ -87,3 +87,11 @@ class FileUploadTest(unittest.TestCase):
         self.failUnless('music3.mp3' in response.content)
         MusicFile.objects.filter(owner=self.gigel).delete()
         self.client.logout()
+
+class OtherPagesTest(unittest.TestCase):
+    def setUp(self):
+        self.client = Client()
+    
+    def test_404(self):
+        response = self.client.get('/no_such_file')
+        self.failUnlessEqual(response.status_code, 404)
