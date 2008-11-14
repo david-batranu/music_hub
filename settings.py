@@ -1,6 +1,5 @@
-from localsettings import MUSIC_HUB_FOLDER, ADMINS, SECRET_KEY
+from localsettings import *
 
-DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -11,7 +10,6 @@ MANAGERS = ADMINS
 DATABASE_ENGINE = 'sqlite3'
 DATABASE_NAME = MUSIC_HUB_FOLDER + 'db.sqlite'
 
-TIME_ZONE = 'Europe/Bucharest'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = False

@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseForbid
 from django.conf import settings
 
 from models import MusicFile, MusicFileForm
+from log import log_file_upload, log_file_delete
 
 def upload(request):
     if isinstance(request.user, AnonymousUser):
@@ -15,6 +16,7 @@ def upload(request):
             music_file.owner = request.user
             music_file.file_name = request.FILES['file'].name
             music_file.save()
+            log_file_upload(request.user, music_file)
             return render_to_response('file_upload_done.html', {})
     else:
         form = MusicFileForm()
@@ -36,6 +38,7 @@ def delete(request):
     if music_file.owner != request.user:
         return HttpResponseForbidden('This file is not yours to delete.')
     
+    log_file_delete(request.user, music_file)
     music_file.delete()
     return render_to_response('file_delete_done.html')
 

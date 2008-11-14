@@ -1,4 +1,5 @@
 import unittest
+import re
 
 from django.test.client import Client
 from django.contrib.auth.models import User
@@ -154,3 +155,36 @@ class OtherPagesTest(unittest.TestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('Log in' in response.content)
         self.failUnless('<form' in response.content)
+
+class LogFileTest(unittest.TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
+        
+        import log
+        self.original_log = log.log_event
+        self.events = []
+        log.log_event = lambda kind, user, txt: self.events.append(
+            {'kind': kind, 'user': user, 'txt': txt})
+    
+    def tearDown(self):
+        self.gigel.delete()
+        import log
+        log.log_event = self.original_log
+    
+    def test_file_upload_delete(self):
+        # TODO: test encoding of non-ascii characters
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        self.failUnlessEqual(len(self.events), 1)
+        self.failUnlessEqual(self.events[0]['kind'], 'upload')
+        self.failUnlessEqual(self.events[0]['user'], 'gigel (%d)' % self.gigel.id)
+        self.failUnless('original_filename: music1.mp3' in self.events[0]['txt'])
+        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', self.events[0]['txt']))
+        self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music1.mp3').id})
+        self.failUnlessEqual(len(self.events), 2)
+        self.failUnlessEqual(self.events[1]['kind'], 'delete')
+        self.failUnlessEqual(self.events[1]['user'], 'gigel (%d)' % self.gigel.id)
+        self.failUnless('music1.mp3' in self.events[1]['txt'])
+        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', self.events[1]['txt']))
+        self.client.logout()
