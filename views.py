@@ -6,6 +6,12 @@ from django.conf import settings
 from models import MusicFile, MusicFileForm
 from log import log_file_upload, log_file_delete
 
+def index(request):
+    latest_uploads = MusicFile.objects.order_by('-date_created')[:10]
+    return render_to_response('index.html', {
+        'latest_uploads': latest_uploads,
+    })
+
 def upload(request):
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden("You need to log in.")

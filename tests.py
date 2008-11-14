@@ -121,6 +121,22 @@ class OtherPagesTest(unittest.TestCase):
     def tearDown(self):
         self.gigel.delete()
     
+    def test_index(self):
+        response = self.client.get('/')
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless('Music hub' in response.content)
+        self.failUnless('Latest uploads' in response.content)
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        for n in range(15):
+            self.client.post('/upload', {'file': make_file('music%d.mp3' % n, '..data..')})
+        response = self.client.get('/')
+        self.failUnlessEqual(response.status_code, 200)
+        for n in range(5):
+            self.failUnless('music%d.mp3' % n not in response.content, 'music file %d should not be here' % n)
+        for n in range(5,15):
+            self.failUnless('music%d.mp3' % n in response.content, 'music file %d is missing' % n)
+        self.failUnless('gigel' in response.content)
+    
     def test_404(self):
         response = self.client.get('/no_such_file')
         self.failUnlessEqual(response.status_code, 404)

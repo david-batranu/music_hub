@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>Music hub</h1>
+
+<h3>Latest uploads</h3>
+
+<ul>
+    {% for music_file in latest_uploads %}
+    <li><a href="">{{ music_file.file_name }}</a> <em>({{ music_file.owner }})</em></li>
+    {% endfor %}
+</ul>
+
+<a href="/upload">Upload!</a>
+{% endblock %}

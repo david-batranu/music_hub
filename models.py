@@ -4,9 +4,6 @@ from django.contrib import admin
 
 from django.contrib.auth.models import User
 
-## store all mp3 files in a folder?
-# MUSIC_FILE_BASE_PATH = 'mp3/'
-
 def generate_mp3_filename(instance, filename):
     import hashlib, datetime
     now = datetime.datetime.now().isoformat()
@@ -16,6 +13,8 @@ class MusicFile(models.Model):
     owner = models.ForeignKey(User)
     file = models.FileField(upload_to=generate_mp3_filename)
     file_name = models.CharField(max_length=256)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
         return u'MusicFile "%s"' % self.file_name

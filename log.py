@@ -8,7 +8,6 @@ def log_event(kind, user, txt):
     now = datetime.now(timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H:%M:%S%z')
     now = "%s:%s" % (now[:-2], now[-2:])
     message = "%s [%s] user: %s; %s\n" % (now, kind, user, txt)
-    print message
     f = open(settings.MUSIC_HUB_FOLDER + "events.log", 'a')
     f.write(message)
     f.close()
