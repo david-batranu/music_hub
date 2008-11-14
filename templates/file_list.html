@@ -1,5 +1,11 @@
 <ul>
     {% for file in files %}
-    <li>{{ file.file_name }}</li>
+    <li>
+        {{ file.file_name }}
+        <form action="/delete" method="POST">
+            <input type="hidden" name="file" value="{{ file.id }}" />
+            <input type="submit" value="del" />
+        </form>
+    </li>
     {% endfor %}
 </ul>

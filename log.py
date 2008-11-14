@@ -2,12 +2,16 @@ from urllib import quote
 from datetime import datetime
 
 from pytz import timezone
-from django.config import settings
+from django.conf import settings
 
 def log_event(kind, user, txt):
     now = datetime.now(timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H:%M:%S%z')
-    message = "%s [%s] {%s} %s\n" % (now, kind, user, txt)
-    open()
+    now = "%s:%s" % (now[:-2], now[-2:])
+    message = "%s [%s] user: %s; %s\n" % (now, kind, user, txt)
+    print message
+    f = open(settings.MUSIC_HUB_FOLDER + "events.log", 'a')
+    f.write(message)
+    f.close()
 
 def log_file_upload(user, music_file):
     log_event(kind='upload',
