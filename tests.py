@@ -13,15 +13,15 @@ def make_file(name, data):
 
 class MusicHubTestCase(unittest.TestCase):
     def setUp(self):
-        self.client = Client()
+        self.client = Client(REMOTE_ADDR='127.0.0.1')
         self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
         self.gigel2 = User.objects.create_user('gigel2', 'gigel2@example.com', 'gigi')
         
         import log
         self.original_log = log.log_event
         self.events = []
-        log.log_event = lambda kind, user, txt: self.events.append(
-            {'kind': kind, 'user': user, 'txt': txt})
+        log.log_event = lambda kind, user, ip, txt: self.events.append(
+            {'kind': kind, 'user': user, 'ip': ip, 'txt': txt})
     
     def tearDown(self):
         self.gigel.delete()
@@ -183,19 +183,36 @@ class LogFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         # upload
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        file_code = MusicFile.objects.get(file_name='music1.mp3').file.name[:-4]
         self.failUnlessEqual(len(self.events), 1)
         event = self.events[0]
         self.failUnlessEqual(event['kind'], 'upload')
         self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
+        self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('original_filename: music1.mp3' in event['txt'])
-        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', event['txt']))
+        self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
+        self.client.logout()
         
-        # delete
-        self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music1.mp3').id})
+        # download
+        self.failUnless(self.client.login(username='gigel2', password='gigi'))
+        self.client.get('/files/%s' % file_code)
         self.failUnlessEqual(len(self.events), 2)
         event = self.events[1]
+        self.failUnlessEqual(event['kind'], 'download')
+        self.failUnlessEqual(event['user'], 'gigel2 (%d)' % self.gigel2.id)
+        self.failUnlessEqual(event['ip'], '127.0.0.1')
+        self.failUnless('music1.mp3' in event['txt'])
+        self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
+        self.client.logout()
+        
+        # delete
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music1.mp3').id})
+        self.failUnlessEqual(len(self.events), 3)
+        event = self.events[2]
         self.failUnlessEqual(event['kind'], 'delete')
         self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
+        self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('music1.mp3' in event['txt'])
-        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', event['txt']))
+        self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
         self.client.logout()
