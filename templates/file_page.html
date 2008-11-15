@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>{{ music_file.file_name }}</h1>
+
+<a href="{{ music_file.get_download_url }}">{{ music_file.file_name }}</a>
+
+{% endblock %}

@@ -8,7 +8,8 @@ urlpatterns = patterns('',
     (r'^upload$', 'music_hub.views.upload'),
     (r'^delete$', 'music_hub.views.delete'),
     (r'^list/(?P<username>[^/]+)$', 'music_hub.views.file_listing'),
-    (r'^files/(?P<file_code>[0-9a-f]+)$', 'music_hub.views.get_file'),
+    (r'^file/(?P<file_code>[0-9a-f]+)$', 'music_hub.views.file_page'),
+    (r'^file/(?P<file_code>[0-9a-f]+)/download$', 'music_hub.views.download_file'),
     
     (r'^auth$', 'music_hub.views.auth'),
     

@@ -53,7 +53,14 @@ def file_listing(request, username):
     files = MusicFile.objects.filter(owner=user)
     return render_to_response('file_list.html', {'files': files})
 
-def get_file(request, file_code):
+def file_page(request, file_code):
+    if isinstance(request.user, AnonymousUser):
+        return HttpResponseForbidden('Only logged-in users can download files.')
+    
+    music_file = get_object_or_404(MusicFile, file='%s.mp3' % file_code)
+    return render_to_response('file_page.html', {'music_file': music_file})
+
+def download_file(request, file_code):
     import os
     from django.core.servers.basehttp import FileWrapper
     if isinstance(request.user, AnonymousUser):

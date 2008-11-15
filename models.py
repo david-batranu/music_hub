@@ -16,6 +16,14 @@ class MusicFile(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     
+    @models.permalink
+    def get_absolute_url(self):
+        return ('music_hub.views.file_page', (), {'file_code': self.file.name[:-4]})
+    
+    @models.permalink
+    def get_download_url(self):
+        return ('music_hub.views.download_file', (), {'file_code': self.file.name[:-4]})
+    
     def __unicode__(self):
         return u'MusicFile "%s"' % self.file_name
 

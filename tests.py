@@ -104,26 +104,41 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
         self.client.logout()
+        file_code = MusicFile.objects.get(file_name='music1.mp3').file.name[:-4]
         
         # bad user
-        file_code = MusicFile.objects.get(file_name='music1.mp3').file.name[:-4]
-        response = self.client.get('/files/%s' % file_code)
+        response = self.client.get('/file/%s' % file_code)
+        self.failUnlessEqual(response.status_code, 403)
+        response = self.client.get('/file/%s/download' % file_code)
         self.failUnlessEqual(response.status_code, 403)
         
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         
         # no such file
-        response = self.client.get('/files/a7c22186f41799f76f0a2534794543e5ac555eae')
+        response = self.client.get('/file/a7c22186f41799f76f0a2534794543e5ac555eae')
+        self.failUnlessEqual(response.status_code, 404)
+        response = self.client.get('/file/a7c22186f41799f76f0a2534794543e5ac555eae/download')
         self.failUnlessEqual(response.status_code, 404)
         
         # correct request
-        response = self.client.get('/files/%s' % file_code)
+        response = self.client.get('/file/%s' % file_code)
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(response['Content-Type'], 'text/html; charset=utf-8')
+        self.failUnless('music1.mp3', response.content)
+        response = self.client.get('/file/%s/download' % file_code)
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(response['Content-Disposition'], 'attachment; filename=music1.mp3')
         self.failUnlessEqual(response['Content-Length'], '8')
         self.failUnlessEqual(response.content, '..data..')
         
+        #/download
         self.client.logout()
+    
+    def test_absolute_url(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        music_file = MusicFile.objects.get(file_name='music1.mp3')
+        self.failUnlessEqual(music_file.get_absolute_url(), '/file/%s' % music_file.file.name[:-4])
 
 class OtherPagesTest(MusicHubTestCase):
     def test_index(self):
@@ -195,7 +210,9 @@ class LogFileTest(MusicHubTestCase):
         
         # download
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
-        self.client.get('/files/%s' % file_code)
+        self.client.get('/file/%s' % file_code)
+        self.failUnlessEqual(len(self.events), 1)
+        self.client.get('/file/%s/download' % file_code)
         self.failUnlessEqual(len(self.events), 2)
         event = self.events[1]
         self.failUnlessEqual(event['kind'], 'download')
