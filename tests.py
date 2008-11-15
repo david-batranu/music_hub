@@ -11,14 +11,26 @@ def make_file(name, data):
     f.name = name
     return f
 
-class SingleFileTest(unittest.TestCase):
+class MusicHubTestCase(unittest.TestCase):
     def setUp(self):
         self.client = Client()
         self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
+        self.gigel2 = User.objects.create_user('gigel2', 'gigel2@example.com', 'gigi')
+        
+        import log
+        self.original_log = log.log_event
+        self.events = []
+        log.log_event = lambda kind, user, txt: self.events.append(
+            {'kind': kind, 'user': user, 'txt': txt})
     
     def tearDown(self):
         self.gigel.delete()
-    
+        self.gigel2.delete()
+        
+        import log
+        log.log_event = self.original_log
+
+class SingleFileTest(MusicHubTestCase):
     def test_upload_form(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         response = self.client.get('/upload')
@@ -113,14 +125,7 @@ class SingleFileTest(unittest.TestCase):
         
         self.client.logout()
 
-class OtherPagesTest(unittest.TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
-    
-    def tearDown(self):
-        self.gigel.delete()
-    
+class OtherPagesTest(MusicHubTestCase):
     def test_index(self):
         response = self.client.get('/')
         self.failUnlessEqual(response.status_code, 200)
@@ -172,35 +177,25 @@ class OtherPagesTest(unittest.TestCase):
         self.failUnless('Log in' in response.content)
         self.failUnless('<form' in response.content)
 
-class LogFileTest(unittest.TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.gigel = User.objects.create_user('gigel', 'gigel@example.com', 'gigi')
-        
-        import log
-        self.original_log = log.log_event
-        self.events = []
-        log.log_event = lambda kind, user, txt: self.events.append(
-            {'kind': kind, 'user': user, 'txt': txt})
-    
-    def tearDown(self):
-        self.gigel.delete()
-        import log
-        log.log_event = self.original_log
-    
-    def test_file_upload_delete(self):
+class LogFileTest(MusicHubTestCase):
+    def test_file_upload_download_delete(self):
         # TODO: test encoding of non-ascii characters
         self.failUnless(self.client.login(username='gigel', password='gigi'))
+        # upload
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
         self.failUnlessEqual(len(self.events), 1)
-        self.failUnlessEqual(self.events[0]['kind'], 'upload')
-        self.failUnlessEqual(self.events[0]['user'], 'gigel (%d)' % self.gigel.id)
-        self.failUnless('original_filename: music1.mp3' in self.events[0]['txt'])
-        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', self.events[0]['txt']))
+        event = self.events[0]
+        self.failUnlessEqual(event['kind'], 'upload')
+        self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
+        self.failUnless('original_filename: music1.mp3' in event['txt'])
+        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', event['txt']))
+        
+        # delete
         self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music1.mp3').id})
         self.failUnlessEqual(len(self.events), 2)
-        self.failUnlessEqual(self.events[1]['kind'], 'delete')
-        self.failUnlessEqual(self.events[1]['user'], 'gigel (%d)' % self.gigel.id)
-        self.failUnless('music1.mp3' in self.events[1]['txt'])
-        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', self.events[1]['txt']))
+        event = self.events[1]
+        self.failUnlessEqual(event['kind'], 'delete')
+        self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
+        self.failUnless('music1.mp3' in event['txt'])
+        self.failUnless(re.search(r'hashed_filename\: [0-9a-f]{40}\.mp3', event['txt']))
         self.client.logout()
