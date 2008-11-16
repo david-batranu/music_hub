@@ -1,9 +1,10 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.models import User, AnonymousUser
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseServerError, \
+        HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseBadRequest
 from django.conf import settings
 
-from models import MusicFile, MusicFileForm
+from models import MusicFile, MusicFileForm, QuotaError
 from log import log_file_upload, log_file_download, log_file_delete
 
 def index(request):
@@ -21,7 +22,15 @@ def upload(request):
             music_file = form.save(commit=False)
             music_file.owner = request.user
             music_file.file_name = request.FILES['file'].name
-            music_file.save()
+            try:
+                music_file.save()
+            except QuotaError, e:
+                if e.kind == 'user':
+                    return HttpResponseBadRequest('File upload failed: you have '
+                        'exceeded your quota of %d bytes.' % e.value)
+                elif e.kind == 'total':
+                    return HttpResponseServerError('File upload failed: there is '
+                        'no more room on the server.')
             log_file_upload(request, music_file)
             return render_to_response('file_upload_done.html', {})
     else:

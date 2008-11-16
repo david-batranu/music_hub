@@ -3,7 +3,7 @@ import re
 
 from django.test.client import Client
 from django.contrib.auth.models import User
-from models import MusicFile
+from models import MusicFile, get_disk_usage
 
 def make_file(name, data):
     from StringIO import StringIO
@@ -131,7 +131,6 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnlessEqual(response['Content-Length'], '8')
         self.failUnlessEqual(response.content, '..data..')
         
-        #/download
         self.client.logout()
     
     def test_absolute_url(self):
@@ -233,3 +232,55 @@ class LogFileTest(MusicHubTestCase):
         self.failUnless('music1.mp3' in event['txt'])
         self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
         self.client.logout()
+
+class QuotaTest(MusicHubTestCase):
+    def setUp(self):
+        super(QuotaTest, self).setUp()
+        import models
+        self.orig_quota = (models.USER_QUOTA, models.TOTAL_QUOTA)
+        models.USER_QUOTA = 30
+        models.TOTAL_QUOTA = 40
+    
+    def tearDown(self):
+        import models
+        (models.USER_QUOTA, models.TOTAL_QUOTA) = self.orig_quota
+        super(QuotaTest, self).tearDown()
+    
+    def test_get_disk_usage(self):
+        self.failUnlessEqual(get_disk_usage(self.gigel), 0)
+        self.failUnlessEqual(get_disk_usage(self.gigel2), 0)
+        self.failUnlessEqual(get_disk_usage(), 0)
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        response = self.client.post('/upload', {'file': make_file('music1.mp3', '.' * 10)})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(get_disk_usage(self.gigel), 10)
+        self.failUnlessEqual(get_disk_usage(self.gigel2), 0)
+        self.failUnlessEqual(get_disk_usage(), 10)
+        self.failUnless(self.client.login(username='gigel2', password='gigi'))
+        response = self.client.post('/upload', {'file': make_file('music2.mp3', '.' * 10)})
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnlessEqual(get_disk_usage(self.gigel), 10)
+        self.failUnlessEqual(get_disk_usage(self.gigel2), 10)
+        self.failUnlessEqual(get_disk_usage(), 20)
+    
+    def test_user_quota(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        response = self.client.post('/upload', {'file': make_file('music1.mp3', '.' * 10)})
+        self.failUnlessEqual(response.status_code, 200)
+        response = self.client.post('/upload', {'file': make_file('music2.mp3', '.' * 10)})
+        self.failUnlessEqual(response.status_code, 200)
+        response = self.client.post('/upload', {'file': make_file('music3.mp3', '.' * 10)})
+        self.failUnlessEqual(response.status_code, 200)
+        response = self.client.post('/upload', {'file': make_file('music4.mp3', '.' * 1)})
+        self.failUnlessEqual(response.status_code, 400)
+        self.failUnless('File upload failed: you have exceeded your quota' in response.content)
+    
+    def test_total_quota(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        response = self.client.post('/upload', {'file': make_file('music1.mp3', '.' * 25)})
+        self.failUnlessEqual(response.status_code, 200)
+        self.client.logout()
+        self.failUnless(self.client.login(username='gigel2', password='gigi'))
+        response = self.client.post('/upload', {'file': make_file('music2.mp3', '.' * 25)})
+        self.failUnlessEqual(response.status_code, 500)
+        self.failUnless('File upload failed: there is no more room on the server' in response.content)
