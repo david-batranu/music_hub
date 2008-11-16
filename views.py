@@ -9,8 +9,13 @@ from log import log_file_upload, log_file_download, log_file_delete
 
 def index(request):
     latest_uploads = MusicFile.objects.order_by('-date_created')[:10]
+    people = filter(
+        lambda user: MusicFile.objects.filter(owner=user).count(),
+        User.objects.all())
     return render_to_response('index.html', {
         'latest_uploads': latest_uploads,
+        'logged_in': not isinstance(request.user, AnonymousUser),
+        'people': people,
     })
 
 def upload(request):
@@ -57,10 +62,10 @@ def delete(request):
     music_file.delete()
     return render_to_response('file_delete_done.html')
 
-def file_listing(request, username):
+def person_page(request, username):
     user = get_object_or_404(User, username=username)
     files = MusicFile.objects.filter(owner=user)
-    return render_to_response('file_list.html', {'files': files})
+    return render_to_response('person_page.html', {'files': files})
 
 def file_page(request, file_code):
     if isinstance(request.user, AnonymousUser):

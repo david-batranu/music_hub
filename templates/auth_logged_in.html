@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block body %}
+<h1>Authentication</h1>
+
 <p>You are logged in as {{ user.username }}.</p>
 <form action="/auth" method="POST">
 <input type="hidden" name="do" value="logout" />

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load music_hub_tags %}
 
 {% block body %}
 <h1>Music hub</h1>
@@ -6,10 +7,24 @@
 <h3>Latest uploads</h3>
 
 <ul>
-    {% for music_file in latest_uploads %}
-    <li><a href="{{ music_file.get_absolute_url }}">{{ music_file.original_name }}</a> <em>({{ music_file.owner }})</em></li>
-    {% endfor %}
+{% for music_file in latest_uploads %}
+    <li>
+        {% song_link music_file %} <em>(from {% person_link music_file.owner %})</em>
+    </li>
+{% endfor %}
 </ul>
 
-<a href="/upload">Upload!</a>
+<h3>People</h3>
+
+<ul>
+{% for person in people %}
+    <li>{% person_link person %}</li>
+{% endfor %}
+</ul>
+
+{% if logged_in %}
+<p><a href="/upload">Upload!</a></p>
+{% else %}
+<p>You must <a href="/auth">log in</a> before uploading files.</p>
+{% endif %}
 {% endblock %}

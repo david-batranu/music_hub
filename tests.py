@@ -89,7 +89,7 @@ class SingleFileTest(MusicHubTestCase):
         self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
         self.client.post('/upload', {'data_file': make_file('music2.mp3', '..data..')})
         self.client.post('/upload', {'data_file': make_file('music3.mp3', '..data..')})
-        response = self.client.get('/list/gigel')
+        response = self.client.get('/people/gigel')
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('music1.mp3' in response.content)
         self.failUnless('music2.mp3' in response.content)
@@ -147,7 +147,11 @@ class OtherPagesTest(MusicHubTestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('Music hub' in response.content)
         self.failUnless('Latest uploads' in response.content)
+        self.failUnless('<a href="/auth">' in response.content)
+        self.failIf('/upload' in response.content, 'the user must log in before he sees the "upload" link')
         self.failUnless(self.client.login(username='gigel', password='gigi'))
+        response = self.client.get('/')
+        self.failUnless('<a href="/upload">' in response.content)
         for n in range(15):
             self.client.post('/upload', {'data_file': make_file('music%d.mp3' % n, '..data..')})
         response = self.client.get('/')
@@ -192,6 +196,16 @@ class OtherPagesTest(MusicHubTestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('Log in' in response.content)
         self.failUnless('<form' in response.content)
+    
+    def test_song_page(self):
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
+        song = MusicFile.objects.get(original_name='music1.mp3')
+        response = self.client.get(song.get_absolute_url())
+        self.failUnlessEqual(response.status_code, 200)
+        self.failUnless(song.owner.username in response.content)
+        self.failUnless(song.original_name in response.content)
+        self.failUnless(song.get_download_url() in response.content)
 
 class LogFileTest(MusicHubTestCase):
     def test_file_upload_download_delete(self):
