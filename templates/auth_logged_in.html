@@ -3,6 +3,7 @@
 {% block body %}
 <p>You are logged in as {{ user.username }}.</p>
 <form action="/auth" method="POST">
-<input type="submit" value="Log out">
+<input type="hidden" name="do" value="logout" />
+<input type="submit" value="Log out" />
 </form>
 {% endblock %}

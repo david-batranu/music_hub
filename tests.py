@@ -37,7 +37,6 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('File' in response.content)
         self.failIf('Owner' in response.content)
-        self.client.logout()
     
     def test_one_upload(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
@@ -48,7 +47,6 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless(f.file.name.endswith('.mp3'))
         self.failUnlessEqual(f.original_name, 'music.mp3')
         self.failUnless(f.owner == self.gigel)
-        self.client.logout()
     
     def test_without_user(self):
         response = self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
@@ -85,7 +83,6 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music.mp3').id})
         self.failUnlessEqual(MusicFile.objects.filter(original_name='music.mp3').count(), 0)
-        self.client.logout()
     
     def test_file_listing(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
@@ -97,7 +94,6 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless('music1.mp3' in response.content)
         self.failUnless('music2.mp3' in response.content)
         self.failUnless('music3.mp3' in response.content)
-        self.client.logout()
     
     def test_get_file(self):
         # upload the file
@@ -130,8 +126,14 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnlessEqual(response['Content-Disposition'], 'attachment; filename=music1.mp3')
         self.failUnlessEqual(response['Content-Length'], '8')
         self.failUnlessEqual(response.content, '..data..')
-        
-        self.client.logout()
+    
+    def test_big_file_download(self):
+        size = 1024*1024*3 # 3 MB
+        self.failUnless(self.client.login(username='gigel', password='gigi'))
+        self.client.post('/upload', {'file': make_file('music1.mp3', '.' * size)})
+        response = self.client.get(MusicFile.objects.get(original_name='music1.mp3').get_download_url())
+        self.failUnlessEqual(response['Content-Length'], str(size))
+        self.failUnlessEqual(len(response.content), size)
     
     def test_absolute_url(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))

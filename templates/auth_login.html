@@ -2,10 +2,11 @@
 
 {% block body %}
 <form action="/auth" method="POST">
+<input type="hidden" name="do" value="login" />
 <h3>Log in</h3>
 <ul>
 {{ auth_form.as_ul }}
 </ul>
-<input type="submit" value="Log in">
+<input type="submit" value="Log in" />
 </form>
 {% endblock %}
