@@ -1,13 +1,16 @@
 from urllib import quote
-from datetime import datetime
 
-from pytz import timezone
-from django.conf import settings
+def _now():
+    from datetime import datetime
+    import time
+    t = time.time()
+    timezone = (datetime.fromtimestamp(t) - datetime.utcfromtimestamp(t)).seconds
+    zonestr = "%+03d:%02d" % (timezone/3600, timezone%3600/60)
+    return datetime.fromtimestamp(t).strftime('%Y-%m-%dT%H:%M:%S') + zonestr
 
 def log_event(kind, user, ip, txt):
-    now = datetime.now(timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H:%M:%S%z')
-    now = "%s:%s" % (now[:-2], now[-2:])
-    message = "%s [%s] user: %s; %s\n" % (now, kind, user, txt)
+    from django.conf import settings
+    message = "%s [%s] user: %s; %s\n" % (_now(), kind, user, txt)
     f = open(settings.MUSIC_HUB_FOLDER + "events.log", 'a')
     f.write(message)
     f.close()
