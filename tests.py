@@ -3,9 +3,9 @@ import re
 
 from django.test.client import Client
 from django.contrib.auth.models import User
-from models import MusicFile, get_disk_usage
+from models import Song, get_disk_usage
 
-def make_file(name, data):
+def make_song(name, data):
     from StringIO import StringIO
     f = StringIO(data)
     f.name = name
@@ -40,106 +40,106 @@ class SingleFileTest(MusicHubTestCase):
     
     def test_one_upload(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'data_file': make_file('music.mp3', '..data..')})
+        response = self.client.post('/upload', {'data_file': make_song('music.mp3', '..data..')})
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('success' in response.content)
-        f = MusicFile.objects.get()
+        f = Song.objects.get()
         self.failUnless(f.data_file.name.endswith('.mp3'))
         self.failUnlessEqual(f.original_name, 'music.mp3')
         self.failUnless(f.owner == self.gigel)
     
     def test_without_user(self):
-        response = self.client.post('/upload', {'data_file': make_file('music.mp3', '..data..')})
+        response = self.client.post('/upload', {'data_file': make_song('music.mp3', '..data..')})
         self.failIf('success' in response.content)
         self.failUnless('log in' in response.content)
         response = self.client.get('/upload')
         self.failUnless('log in' in response.content)
     
-    def test_remove_file(self):
-        # upload the file
+    def test_remove_song(self):
+        # upload the song
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_file('music.mp3', '..data..')})
-        self.failUnlessEqual(MusicFile.objects.filter(original_name='music.mp3').count(), 1)
+        self.client.post('/upload', {'data_file': make_song('music.mp3', '..data..')})
+        self.failUnlessEqual(Song.objects.filter(original_name='music.mp3').count(), 1)
         self.client.logout()
         
         # bad request (GET)
         response = self.client.get('/delete')
         self.failUnlessEqual(response.status_code, 405)
         
-        # no such file
+        # no such song
         response = self.client.post('/delete')
         self.failUnlessEqual(response.status_code, 400)
-        self.failUnless('The file does not exist' in response.content)
-        response = self.client.post('/delete', {'file': 13})
+        self.failUnless('The song does not exist' in response.content)
+        response = self.client.post('/delete', {'song': 13})
         self.failUnlessEqual(response.status_code, 400)
-        self.failUnless('The file does not exist' in response.content)
+        self.failUnless('The song does not exist' in response.content)
         
         # bad user
-        response = self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music.mp3').id})
+        response = self.client.post('/delete', {'song': Song.objects.get(original_name='music.mp3').id})
         self.failUnlessEqual(response.status_code, 403)
-        self.failUnless('This file is not yours to delete' in response.content)
+        self.failUnless('This song is not yours to delete' in response.content)
         
         # the correct request
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music.mp3').id})
-        self.failUnlessEqual(MusicFile.objects.filter(original_name='music.mp3').count(), 0)
+        self.client.post('/delete', {'song': Song.objects.get(original_name='music.mp3').id})
+        self.failUnlessEqual(Song.objects.filter(original_name='music.mp3').count(), 0)
     
-    def test_file_listing(self):
+    def test_song_listing(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
-        self.client.post('/upload', {'data_file': make_file('music2.mp3', '..data..')})
-        self.client.post('/upload', {'data_file': make_file('music3.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_song('music2.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_song('music3.mp3', '..data..')})
         response = self.client.get('/people/gigel')
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('music1.mp3' in response.content)
         self.failUnless('music2.mp3' in response.content)
         self.failUnless('music3.mp3' in response.content)
     
-    def test_get_file(self):
-        # upload the file
+    def test_get_song(self):
+        # upload the song
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
         self.client.logout()
-        file_code = MusicFile.objects.get(original_name='music1.mp3').data_file.name[:-4]
+        song_code = Song.objects.get(original_name='music1.mp3').data_file.name[:-4]
         
         # bad user
-        response = self.client.get('/file/%s' % file_code)
+        response = self.client.get('/song/%s' % song_code)
         self.failUnlessEqual(response.status_code, 403)
-        response = self.client.get('/file/%s/download' % file_code)
+        response = self.client.get('/song/%s/download' % song_code)
         self.failUnlessEqual(response.status_code, 403)
         
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         
-        # no such file
-        response = self.client.get('/file/a7c22186f41799f76f0a2534794543e5ac555eae')
+        # no such song
+        response = self.client.get('/song/a7c22186f41799f76f0a2534794543e5ac555eae')
         self.failUnlessEqual(response.status_code, 404)
-        response = self.client.get('/file/a7c22186f41799f76f0a2534794543e5ac555eae/download')
+        response = self.client.get('/song/a7c22186f41799f76f0a2534794543e5ac555eae/download')
         self.failUnlessEqual(response.status_code, 404)
         
         # correct request
-        response = self.client.get('/file/%s' % file_code)
+        response = self.client.get('/song/%s' % song_code)
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(response['Content-Type'], 'text/html; charset=utf-8')
         self.failUnless('music1.mp3', response.content)
-        response = self.client.get('/file/%s/download' % file_code)
+        response = self.client.get('/song/%s/download' % song_code)
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(response['Content-Disposition'], 'attachment; filename=music1.mp3')
         self.failUnlessEqual(response['Content-Length'], '8')
         self.failUnlessEqual(response.content, '..data..')
     
-    def test_big_file_download(self):
+    def test_big_song_download(self):
         size = 1024*1024*3 # 3 MB
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * size)})
-        response = self.client.get(MusicFile.objects.get(original_name='music1.mp3').get_download_url())
+        self.client.post('/upload', {'data_file': make_song('music1.mp3', '.' * size)})
+        response = self.client.get(Song.objects.get(original_name='music1.mp3').get_download_url())
         self.failUnlessEqual(response['Content-Length'], str(size))
         self.failUnlessEqual(len(response.content), size)
     
     def test_absolute_url(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
-        music_file = MusicFile.objects.get(original_name='music1.mp3')
-        self.failUnlessEqual(music_file.get_absolute_url(), '/file/%s' % music_file.data_file.name[:-4])
+        self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
+        song = Song.objects.get(original_name='music1.mp3')
+        self.failUnlessEqual(song.get_absolute_url(), '/song/%s' % song.data_file.name[:-4])
 
 class OtherPagesTest(MusicHubTestCase):
     def test_index(self):
@@ -153,13 +153,13 @@ class OtherPagesTest(MusicHubTestCase):
         response = self.client.get('/')
         self.failUnless('<a href="/upload">' in response.content)
         for n in range(15):
-            self.client.post('/upload', {'data_file': make_file('music%d.mp3' % n, '..data..')})
+            self.client.post('/upload', {'data_file': make_song('music%d.mp3' % n, '..data..')})
         response = self.client.get('/')
         self.failUnlessEqual(response.status_code, 200)
         for n in range(5):
-            self.failUnless('music%d.mp3' % n not in response.content, 'music file %d should not be here' % n)
+            self.failUnless('music%d.mp3' % n not in response.content, 'song %d should not be here' % n)
         for n in range(5,15):
-            self.failUnless('music%d.mp3' % n in response.content, 'music file %d is missing' % n)
+            self.failUnless('music%d.mp3' % n in response.content, 'song %d is missing' % n)
         self.failUnless('gigel' in response.content)
     
     def test_404(self):
@@ -199,8 +199,8 @@ class OtherPagesTest(MusicHubTestCase):
     
     def test_song_page(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
-        song = MusicFile.objects.get(original_name='music1.mp3')
+        self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
+        song = Song.objects.get(original_name='music1.mp3')
         response = self.client.get(song.get_absolute_url())
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless(song.owner.username in response.content)
@@ -208,45 +208,45 @@ class OtherPagesTest(MusicHubTestCase):
         self.failUnless(song.get_download_url() in response.content)
 
 class LogFileTest(MusicHubTestCase):
-    def test_file_upload_download_delete(self):
+    def test_song_upload_download_delete(self):
         # TODO: test encoding of non-ascii characters
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         # upload
-        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
-        file_code = MusicFile.objects.get(original_name='music1.mp3').data_file.name[:-4]
+        self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
+        song_code = Song.objects.get(original_name='music1.mp3').data_file.name[:-4]
         self.failUnlessEqual(len(self.events), 1)
         event = self.events[0]
         self.failUnlessEqual(event['kind'], 'upload')
         self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
         self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('original_filename: music1.mp3' in event['txt'])
-        self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
+        self.failUnless('hashed_filename: %s.mp3' % song_code in event['txt'])
         self.client.logout()
         
         # download
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
-        self.client.get('/file/%s' % file_code)
+        self.client.get('/song/%s' % song_code)
         self.failUnlessEqual(len(self.events), 1)
-        self.client.get('/file/%s/download' % file_code)
+        self.client.get('/song/%s/download' % song_code)
         self.failUnlessEqual(len(self.events), 2)
         event = self.events[1]
         self.failUnlessEqual(event['kind'], 'download')
         self.failUnlessEqual(event['user'], 'gigel2 (%d)' % self.gigel2.id)
         self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('music1.mp3' in event['txt'])
-        self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
+        self.failUnless('hashed_filename: %s.mp3' % song_code in event['txt'])
         self.client.logout()
         
         # delete
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music1.mp3').id})
+        self.client.post('/delete', {'song': Song.objects.get(original_name='music1.mp3').id})
         self.failUnlessEqual(len(self.events), 3)
         event = self.events[2]
         self.failUnlessEqual(event['kind'], 'delete')
         self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
         self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('music1.mp3' in event['txt'])
-        self.failUnless('hashed_filename: %s.mp3' % file_code in event['txt'])
+        self.failUnless('hashed_filename: %s.mp3' % song_code in event['txt'])
         self.client.logout()
 
 class QuotaTest(MusicHubTestCase):
@@ -267,13 +267,13 @@ class QuotaTest(MusicHubTestCase):
         self.failUnlessEqual(get_disk_usage(self.gigel2), 0)
         self.failUnlessEqual(get_disk_usage(), 0)
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_song('music1.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(get_disk_usage(self.gigel), 10)
         self.failUnlessEqual(get_disk_usage(self.gigel2), 0)
         self.failUnlessEqual(get_disk_usage(), 10)
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
-        response = self.client.post('/upload', {'data_file': make_file('music2.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_song('music2.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(get_disk_usage(self.gigel), 10)
         self.failUnlessEqual(get_disk_usage(self.gigel2), 10)
@@ -281,22 +281,22 @@ class QuotaTest(MusicHubTestCase):
     
     def test_user_quota(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_song('music1.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
-        response = self.client.post('/upload', {'data_file': make_file('music2.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_song('music2.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
-        response = self.client.post('/upload', {'data_file': make_file('music3.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_song('music3.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
-        response = self.client.post('/upload', {'data_file': make_file('music4.mp3', '.' * 1)})
+        response = self.client.post('/upload', {'data_file': make_song('music4.mp3', '.' * 1)})
         self.failUnlessEqual(response.status_code, 400)
         self.failUnless('File upload failed: you have exceeded your quota' in response.content)
     
     def test_total_quota(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * 25)})
+        response = self.client.post('/upload', {'data_file': make_song('music1.mp3', '.' * 25)})
         self.failUnlessEqual(response.status_code, 200)
         self.client.logout()
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
-        response = self.client.post('/upload', {'data_file': make_file('music2.mp3', '.' * 25)})
+        response = self.client.post('/upload', {'data_file': make_song('music2.mp3', '.' * 25)})
         self.failUnlessEqual(response.status_code, 500)
         self.failUnless('File upload failed: there is no more room on the server' in response.content)

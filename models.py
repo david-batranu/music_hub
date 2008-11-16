@@ -14,22 +14,22 @@ def generate_mp3_filename(instance, filename):
     return hashlib.sha1(now + filename).hexdigest() + '.mp3'
 
 def get_disk_usage(user=None):
-    """ return total size of files owned by user (or all files, if user is None) """
+    """ return total size of songs owned by user (or all songs, if user is None) """
     
     # TODO: optimisation: do a raw SQL query
     if user:
-        files = MusicFile.objects.filter(owner=user)
+        songs = Song.objects.filter(owner=user)
     else:
-        files = MusicFile.objects.all()
+        songs = Song.objects.all()
     
-    return sum(music_file.data_file.size for music_file in files)
+    return sum(song.data_file.size for song in songs)
 
 class QuotaError(ValueError):
     def __init__(self, kind, value):
         self.kind = kind
         self.value = value
 
-class MusicFile(models.Model):
+class Song(models.Model):
     owner = models.ForeignKey(User)
     data_file = models.FileField(upload_to=generate_mp3_filename)
     original_name = models.CharField(max_length=256)
@@ -41,22 +41,22 @@ class MusicFile(models.Model):
             raise QuotaError('user', USER_QUOTA)
         if get_disk_usage() + self.data_file.size > TOTAL_QUOTA:
             raise QuotaError('total', USER_QUOTA)
-        super(MusicFile, self).save()
+        super(Song, self).save()
     
     @models.permalink
     def get_absolute_url(self):
-        return ('music_hub.views.file_page', (), {'file_code': self.data_file.name[:-4]})
+        return ('music_hub.views.song_page', (), {'song_code': self.data_file.name[:-4]})
     
     @models.permalink
     def get_download_url(self):
-        return ('music_hub.views.download_file', (), {'file_code': self.data_file.name[:-4]})
+        return ('music_hub.views.download_song', (), {'song_code': self.data_file.name[:-4]})
     
     def __unicode__(self):
-        return u'MusicFile "%s"' % self.original_name
+        return u'Song "%s"' % self.original_name
 
-admin.site.register(MusicFile)
+admin.site.register(Song)
 
-class MusicFileForm(forms.ModelForm):
+class SongForm(forms.ModelForm):
     class Meta:
-        model = MusicFile
+        model = Song
         fields = ['data_file']

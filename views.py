@@ -4,13 +4,13 @@ from django.http import HttpResponse, HttpResponseServerError, \
         HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseBadRequest
 from django.conf import settings
 
-from models import MusicFile, MusicFileForm, QuotaError
-from log import log_file_upload, log_file_download, log_file_delete
+from models import Song, SongForm, QuotaError
+from log import log_song_upload, log_song_download, log_song_delete
 
 def index(request):
-    latest_uploads = MusicFile.objects.order_by('-date_created')[:10]
+    latest_uploads = Song.objects.order_by('-date_created')[:10]
     people = filter(
-        lambda user: MusicFile.objects.filter(owner=user).count(),
+        lambda user: Song.objects.filter(owner=user).count(),
         User.objects.all())
     return render_to_response('index.html', {
         'latest_uploads': latest_uploads,
@@ -22,13 +22,13 @@ def upload(request):
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden("You need to log in.")
     if request.method == 'POST':
-        form = MusicFileForm(request.POST, request.FILES)
+        form = SongForm(request.POST, request.FILES)
         if form.is_valid():
-            music_file = form.save(commit=False)
-            music_file.owner = request.user
-            music_file.original_name = request.FILES['data_file'].name
+            song = form.save(commit=False)
+            song.owner = request.user
+            song.original_name = request.FILES['data_file'].name
             try:
-                music_file.save()
+                song.save()
             except QuotaError, e:
                 if e.kind == 'user':
                     return HttpResponseBadRequest('File upload failed: you have '
@@ -36,59 +36,59 @@ def upload(request):
                 elif e.kind == 'total':
                     return HttpResponseServerError('File upload failed: there is '
                         'no more room on the server.')
-            log_file_upload(request, music_file)
-            return render_to_response('file_upload_done.html', {})
+            log_song_upload(request, song)
+            return render_to_response('song_upload_done.html', {})
     else:
-        form = MusicFileForm()
+        form = SongForm()
     
-    return render_to_response('file_upload.html', {'form': form})
+    return render_to_response('song_upload.html', {'form': form})
 
 def delete(request):
     from django.core.exceptions import ObjectDoesNotExist
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
     
-    music_file_id = request.POST.get('file', '-1')
+    song_id = request.POST.get('song', '-1')
     
     try:
-        music_file = MusicFile.objects.get(id=music_file_id)
+        song = Song.objects.get(id=song_id)
     except ObjectDoesNotExist:
-        return HttpResponseBadRequest("The file does not exist.")
+        return HttpResponseBadRequest("The song does not exist.")
     
-    if music_file.owner != request.user:
-        return HttpResponseForbidden('This file is not yours to delete.')
+    if song.owner != request.user:
+        return HttpResponseForbidden('This song is not yours to delete.')
     
-    log_file_delete(request, music_file)
-    music_file.delete()
-    return render_to_response('file_delete_done.html')
+    log_song_delete(request, song)
+    song.delete()
+    return render_to_response('song_delete_done.html')
 
 def person_page(request, username):
     user = get_object_or_404(User, username=username)
-    files = MusicFile.objects.filter(owner=user)
-    return render_to_response('person_page.html', {'files': files})
+    songs = Song.objects.filter(owner=user)
+    return render_to_response('person_page.html', {'songs': songs})
 
-def file_page(request, file_code):
+def song_page(request, song_code):
     if isinstance(request.user, AnonymousUser):
-        return HttpResponseForbidden('Only logged-in users can download files.')
+        return HttpResponseForbidden('Only logged-in users can download songs.')
     
-    music_file = get_object_or_404(MusicFile, data_file='%s.mp3' % file_code)
-    return render_to_response('file_page.html', {'music_file': music_file})
+    song = get_object_or_404(Song, data_file='%s.mp3' % song_code)
+    return render_to_response('song_page.html', {'song': song})
 
-def download_file(request, file_code):
+def download_song(request, song_code):
     import os
     from django.core.servers.basehttp import FileWrapper
     if isinstance(request.user, AnonymousUser):
-        return HttpResponseForbidden('Only logged-in users can download files.')
+        return HttpResponseForbidden('Only logged-in users can download songs.')
     
-    music_file = get_object_or_404(MusicFile, data_file='%s.mp3' % file_code)
-    log_file_download(request, music_file)
+    song = get_object_or_404(Song, data_file='%s.mp3' % song_code)
+    log_song_download(request, song)
     
-    file_path = '%s%s' % (settings.MEDIA_ROOT, music_file.data_file)
-    wrapper = FileWrapper(file(file_path))
+    data_file_path = '%s%s' % (settings.MEDIA_ROOT, song.data_file)
+    wrapper = FileWrapper(file(data_file_path))
     
     response = HttpResponse(wrapper, content_type='audio/mpeg')
-    response['Content-Disposition'] = 'attachment; filename=%s' % music_file.original_name
-    response['Content-Length'] = os.path.getsize(file_path)
+    response['Content-Disposition'] = 'attachment; filename=%s' % song.original_name
+    response['Content-Length'] = os.path.getsize(data_file_path)
     return response
 
 def auth(request):

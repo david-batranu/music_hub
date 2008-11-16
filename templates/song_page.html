@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load music_hub_tags %}
+
+{% block body %}
+<h1>{{ song.original_name }}</h1>
+
+<p>Uploaded by {% person_link song.owner %}</p>
+
+[<a href="{{ song.get_download_url }}">download</a>]
+
+{% endblock %}

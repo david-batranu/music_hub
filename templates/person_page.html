@@ -3,12 +3,12 @@
 
 {% block body %}
 <ul>
-    {% for file in files %}
+    {% for song in songs %}
     <li>
-        <a href="{{ file.get_absolute_url }}">{{ file.original_name }}</a>
-        [<a href="{{ file.get_download_url }}">download</a>]
+        <a href="{{ song.get_absolute_url }}">{{ song.original_name }}</a>
+        [<a href="{{ song.get_download_url }}">download</a>]
         <form action="/delete" method="POST">
-            <input type="hidden" name="file" value="{{ file.id }}" />
+            <input type="hidden" name="song" value="{{ song.id }}" />
             <input type="submit" value="del" />
         </form>
     </li>

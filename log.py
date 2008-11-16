@@ -12,19 +12,19 @@ def log_event(kind, user, ip, txt):
     f.write(message)
     f.close()
 
-def _log_file_event(kind, request, music_file):
+def _log_song_event(kind, request, song):
     log_event(kind=kind,
         user="%s (%d)" % (quote(request.user.username), request.user.id),
         ip=request.META['REMOTE_ADDR'],
         txt="original_filename: %s; hashed_filename: %s" % (
-            quote(music_file.original_name), quote(str(music_file.data_file)))
+            quote(song.original_name), quote(str(song.data_file)))
     )
 
-def log_file_upload(request, music_file):
-    _log_file_event('upload', request, music_file)
+def log_song_upload(request, song):
+    _log_song_event('upload', request, song)
 
-def log_file_download(request, music_file):
-    _log_file_event('download', request, music_file)
+def log_song_download(request, song):
+    _log_song_event('download', request, song)
 
-def log_file_delete(request, music_file):
-    _log_file_event('delete', request, music_file)
+def log_song_delete(request, song):
+    _log_song_event('delete', request, song)

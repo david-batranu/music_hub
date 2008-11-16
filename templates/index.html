@@ -7,9 +7,9 @@
 <h3>Latest uploads</h3>
 
 <ul>
-{% for music_file in latest_uploads %}
+{% for song in latest_uploads %}
     <li>
-        {% song_link music_file %} <em>(from {% person_link music_file.owner %})</em>
+        {% song_link song %} <em>(from {% person_link song.owner %})</em>
     </li>
 {% endfor %}
 </ul>
@@ -25,6 +25,6 @@
 {% if logged_in %}
 <p><a href="/upload">Upload!</a></p>
 {% else %}
-<p>You must <a href="/auth">log in</a> before uploading files.</p>
+<p>You must <a href="/auth">log in</a> before uploading songs.</p>
 {% endif %}
 {% endblock %}
