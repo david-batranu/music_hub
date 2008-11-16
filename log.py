@@ -17,7 +17,7 @@ def _log_file_event(kind, request, music_file):
         user="%s (%d)" % (quote(request.user.username), request.user.id),
         ip=request.META['REMOTE_ADDR'],
         txt="original_filename: %s; hashed_filename: %s" % (
-            quote(music_file.file_name), quote(str(music_file.file)))
+            quote(music_file.original_name), quote(str(music_file.file)))
     )
 
 def log_file_upload(request, music_file):

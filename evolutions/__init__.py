@@ -1,1 +1,4 @@
-SEQUENCE = ['add_timestamps']
+SEQUENCE = [
+    'add_timestamps',
+    'rename_musicfile_file_name',
+]

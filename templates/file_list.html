@@ -1,7 +1,7 @@
 <ul>
     {% for file in files %}
     <li>
-        <a href="{{ file.get_absolute_url }}">{{ file.file_name }}</a>
+        <a href="{{ file.get_absolute_url }}">{{ file.original_name }}</a>
         [<a href="{{ file.get_download_url }}">download</a>]
         <form action="/delete" method="POST">
             <input type="hidden" name="file" value="{{ file.id }}" />

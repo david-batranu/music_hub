@@ -7,7 +7,7 @@
 
 <ul>
     {% for music_file in latest_uploads %}
-    <li><a href="{{ music_file.get_absolute_url }}">{{ music_file.file_name }}</a> <em>({{ music_file.owner }})</em></li>
+    <li><a href="{{ music_file.get_absolute_url }}">{{ music_file.original_name }}</a> <em>({{ music_file.owner }})</em></li>
     {% endfor %}
 </ul>
 

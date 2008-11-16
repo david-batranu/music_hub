@@ -21,7 +21,7 @@ def upload(request):
         if form.is_valid():
             music_file = form.save(commit=False)
             music_file.owner = request.user
-            music_file.file_name = request.FILES['file'].name
+            music_file.original_name = request.FILES['file'].name
             try:
                 music_file.save()
             except QuotaError, e:
@@ -82,7 +82,7 @@ def download_file(request, file_code):
     wrapper = FileWrapper(file(file_path))
     
     response = HttpResponse(wrapper, content_type='audio/mpeg')
-    response['Content-Disposition'] = 'attachment; filename=%s' % music_file.file_name
+    response['Content-Disposition'] = 'attachment; filename=%s' % music_file.original_name
     response['Content-Length'] = os.path.getsize(file_path)
     return response
 

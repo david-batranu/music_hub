@@ -46,7 +46,7 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless('success' in response.content)
         f = MusicFile.objects.get()
         self.failUnless(f.file.name.endswith('.mp3'))
-        self.failUnlessEqual(f.file_name, 'music.mp3')
+        self.failUnlessEqual(f.original_name, 'music.mp3')
         self.failUnless(f.owner == self.gigel)
         self.client.logout()
     
@@ -61,7 +61,7 @@ class SingleFileTest(MusicHubTestCase):
         # upload the file
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
-        self.failUnlessEqual(MusicFile.objects.filter(file_name='music.mp3').count(), 1)
+        self.failUnlessEqual(MusicFile.objects.filter(original_name='music.mp3').count(), 1)
         self.client.logout()
         
         # bad request (GET)
@@ -77,14 +77,14 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless('The file does not exist' in response.content)
         
         # bad user
-        response = self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music.mp3').id})
+        response = self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music.mp3').id})
         self.failUnlessEqual(response.status_code, 403)
         self.failUnless('This file is not yours to delete' in response.content)
         
         # the correct request
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music.mp3').id})
-        self.failUnlessEqual(MusicFile.objects.filter(file_name='music.mp3').count(), 0)
+        self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music.mp3').id})
+        self.failUnlessEqual(MusicFile.objects.filter(original_name='music.mp3').count(), 0)
         self.client.logout()
     
     def test_file_listing(self):
@@ -104,7 +104,7 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
         self.client.logout()
-        file_code = MusicFile.objects.get(file_name='music1.mp3').file.name[:-4]
+        file_code = MusicFile.objects.get(original_name='music1.mp3').file.name[:-4]
         
         # bad user
         response = self.client.get('/file/%s' % file_code)
@@ -136,7 +136,7 @@ class SingleFileTest(MusicHubTestCase):
     def test_absolute_url(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
-        music_file = MusicFile.objects.get(file_name='music1.mp3')
+        music_file = MusicFile.objects.get(original_name='music1.mp3')
         self.failUnlessEqual(music_file.get_absolute_url(), '/file/%s' % music_file.file.name[:-4])
 
 class OtherPagesTest(MusicHubTestCase):
@@ -197,7 +197,7 @@ class LogFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         # upload
         self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
-        file_code = MusicFile.objects.get(file_name='music1.mp3').file.name[:-4]
+        file_code = MusicFile.objects.get(original_name='music1.mp3').file.name[:-4]
         self.failUnlessEqual(len(self.events), 1)
         event = self.events[0]
         self.failUnlessEqual(event['kind'], 'upload')
@@ -223,7 +223,7 @@ class LogFileTest(MusicHubTestCase):
         
         # delete
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/delete', {'file': MusicFile.objects.get(file_name='music1.mp3').id})
+        self.client.post('/delete', {'file': MusicFile.objects.get(original_name='music1.mp3').id})
         self.failUnlessEqual(len(self.events), 3)
         event = self.events[2]
         self.failUnlessEqual(event['kind'], 'delete')

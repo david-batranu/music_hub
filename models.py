@@ -32,7 +32,7 @@ class QuotaError(ValueError):
 class MusicFile(models.Model):
     owner = models.ForeignKey(User)
     file = models.FileField(upload_to=generate_mp3_filename)
-    file_name = models.CharField(max_length=256) # TODO: rename to original_name
+    original_name = models.CharField(max_length=256)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     
@@ -52,7 +52,7 @@ class MusicFile(models.Model):
         return ('music_hub.views.download_file', (), {'file_code': self.file.name[:-4]})
     
     def __unicode__(self):
-        return u'MusicFile "%s"' % self.file_name
+        return u'MusicFile "%s"' % self.original_name
 
 admin.site.register(MusicFile)
 
