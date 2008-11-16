@@ -100,7 +100,7 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
         self.client.logout()
-        song_code = Song.objects.get(original_name='music1.mp3').data_file.name[:-4]
+        song_code = Song.objects.get(original_name='music1.mp3').get_code()
         
         # bad user
         response = self.client.get('/song/%s' % song_code)
@@ -134,12 +134,21 @@ class SingleFileTest(MusicHubTestCase):
         response = self.client.get(Song.objects.get(original_name='music1.mp3').get_download_url())
         self.failUnlessEqual(response['Content-Length'], str(size))
         self.failUnlessEqual(len(response.content), size)
-    
-    def test_absolute_url(self):
-        self.failUnless(self.client.login(username='gigel', password='gigi'))
+
+class SongObjectTest(MusicHubTestCase):
+    def setUp(self):
+        super(SongObjectTest, self).setUp()
+        self.client.login(username='gigel', password='gigi')
         self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
-        song = Song.objects.get(original_name='music1.mp3')
-        self.failUnlessEqual(song.get_absolute_url(), '/song/%s' % song.data_file.name[:-4])
+        self.client.logout()
+        self.song = Song.objects.get(original_name='music1.mp3')
+    
+    def test_get_code(self):
+        self.failUnlessEqual(self.song.get_code(), self.song.data_file.name[:-4])
+    
+    def test_urls(self):
+        self.failUnlessEqual(self.song.get_absolute_url(), '/song/%s' % self.song.get_code())
+        self.failUnlessEqual(self.song.get_download_url(), '/song/%s/download' % self.song.get_code())
 
 class OtherPagesTest(MusicHubTestCase):
     def test_index(self):
@@ -213,15 +222,16 @@ class LogFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         # upload
         self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
-        song_code = Song.objects.get(original_name='music1.mp3').data_file.name[:-4]
+        song_code = Song.objects.get(original_name='music1.mp3').get_code()
         self.failUnlessEqual(len(self.events), 1)
         event = self.events[0]
+        self.client.logout()
         self.failUnlessEqual(event['kind'], 'upload')
         self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
         self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('original_filename: music1.mp3' in event['txt'])
-        self.failUnless('hashed_filename: %s.mp3' % song_code in event['txt'])
-        self.client.logout()
+        self.failUnless('code: %s' % song_code in event['txt'])
+        self.failUnless('file_size: 8' in event['txt'])
         
         # download
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
@@ -229,25 +239,27 @@ class LogFileTest(MusicHubTestCase):
         self.failUnlessEqual(len(self.events), 1)
         self.client.get('/song/%s/download' % song_code)
         self.failUnlessEqual(len(self.events), 2)
+        self.client.logout()
         event = self.events[1]
         self.failUnlessEqual(event['kind'], 'download')
         self.failUnlessEqual(event['user'], 'gigel2 (%d)' % self.gigel2.id)
         self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('music1.mp3' in event['txt'])
-        self.failUnless('hashed_filename: %s.mp3' % song_code in event['txt'])
-        self.client.logout()
+        self.failUnless('code: %s' % song_code in event['txt'])
+        self.failUnless('file_size: 8' in event['txt'])
         
         # delete
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         self.client.post('/delete', {'song': Song.objects.get(original_name='music1.mp3').id})
         self.failUnlessEqual(len(self.events), 3)
+        self.client.logout()
         event = self.events[2]
         self.failUnlessEqual(event['kind'], 'delete')
         self.failUnlessEqual(event['user'], 'gigel (%d)' % self.gigel.id)
         self.failUnlessEqual(event['ip'], '127.0.0.1')
         self.failUnless('music1.mp3' in event['txt'])
-        self.failUnless('hashed_filename: %s.mp3' % song_code in event['txt'])
-        self.client.logout()
+        self.failUnless('code: %s' % song_code in event['txt'])
+        self.failUnless('file_size: 8' in event['txt'])
 
 class QuotaTest(MusicHubTestCase):
     def setUp(self):

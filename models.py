@@ -43,13 +43,16 @@ class Song(models.Model):
             raise QuotaError('total', USER_QUOTA)
         super(Song, self).save()
     
+    def get_code(self):
+        return self.data_file.name[:-4]
+    
     @models.permalink
     def get_absolute_url(self):
-        return ('music_hub.views.song_page', (), {'song_code': self.data_file.name[:-4]})
+        return ('music_hub.views.song_page', (), {'song_code': self.get_code()})
     
     @models.permalink
     def get_download_url(self):
-        return ('music_hub.views.download_song', (), {'song_code': self.data_file.name[:-4]})
+        return ('music_hub.views.download_song', (), {'song_code': self.get_code()})
     
     def __unicode__(self):
         return u'Song "%s"' % self.original_name

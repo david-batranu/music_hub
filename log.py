@@ -16,8 +16,8 @@ def _log_song_event(kind, request, song):
     log_event(kind=kind,
         user="%s (%d)" % (quote(request.user.username), request.user.id),
         ip=request.META['REMOTE_ADDR'],
-        txt="original_filename: %s; hashed_filename: %s" % (
-            quote(song.original_name), quote(str(song.data_file)))
+        txt="original_filename: %s; code: %s; file_size: %d" % (
+            quote(song.original_name), quote(song.get_code()), song.data_file.size)
     )
 
 def log_song_upload(request, song):
