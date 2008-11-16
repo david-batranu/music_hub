@@ -21,7 +21,7 @@ def upload(request):
         if form.is_valid():
             music_file = form.save(commit=False)
             music_file.owner = request.user
-            music_file.original_name = request.FILES['file'].name
+            music_file.original_name = request.FILES['data_file'].name
             try:
                 music_file.save()
             except QuotaError, e:
@@ -66,7 +66,7 @@ def file_page(request, file_code):
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden('Only logged-in users can download files.')
     
-    music_file = get_object_or_404(MusicFile, file='%s.mp3' % file_code)
+    music_file = get_object_or_404(MusicFile, data_file='%s.mp3' % file_code)
     return render_to_response('file_page.html', {'music_file': music_file})
 
 def download_file(request, file_code):
@@ -75,10 +75,10 @@ def download_file(request, file_code):
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden('Only logged-in users can download files.')
     
-    music_file = get_object_or_404(MusicFile, file='%s.mp3' % file_code)
+    music_file = get_object_or_404(MusicFile, data_file='%s.mp3' % file_code)
     log_file_download(request, music_file)
     
-    file_path = '%s%s' % (settings.MEDIA_ROOT, music_file.file)
+    file_path = '%s%s' % (settings.MEDIA_ROOT, music_file.data_file)
     wrapper = FileWrapper(file(file_path))
     
     response = HttpResponse(wrapper, content_type='audio/mpeg')

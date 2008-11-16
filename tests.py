@@ -35,21 +35,21 @@ class SingleFileTest(MusicHubTestCase):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         response = self.client.get('/upload')
         self.failUnlessEqual(response.status_code, 200)
-        self.failUnless('File' in response.content)
+        self.failUnless('Data file' in response.content)
         self.failIf('Owner' in response.content)
     
     def test_one_upload(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
+        response = self.client.post('/upload', {'data_file': make_file('music.mp3', '..data..')})
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('success' in response.content)
         f = MusicFile.objects.get()
-        self.failUnless(f.file.name.endswith('.mp3'))
+        self.failUnless(f.data_file.name.endswith('.mp3'))
         self.failUnlessEqual(f.original_name, 'music.mp3')
         self.failUnless(f.owner == self.gigel)
     
     def test_without_user(self):
-        response = self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
+        response = self.client.post('/upload', {'data_file': make_file('music.mp3', '..data..')})
         self.failIf('success' in response.content)
         self.failUnless('log in' in response.content)
         response = self.client.get('/upload')
@@ -58,7 +58,7 @@ class SingleFileTest(MusicHubTestCase):
     def test_remove_file(self):
         # upload the file
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'file': make_file('music.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_file('music.mp3', '..data..')})
         self.failUnlessEqual(MusicFile.objects.filter(original_name='music.mp3').count(), 1)
         self.client.logout()
         
@@ -86,9 +86,9 @@ class SingleFileTest(MusicHubTestCase):
     
     def test_file_listing(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
-        self.client.post('/upload', {'file': make_file('music2.mp3', '..data..')})
-        self.client.post('/upload', {'file': make_file('music3.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_file('music2.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_file('music3.mp3', '..data..')})
         response = self.client.get('/list/gigel')
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('music1.mp3' in response.content)
@@ -98,9 +98,9 @@ class SingleFileTest(MusicHubTestCase):
     def test_get_file(self):
         # upload the file
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
         self.client.logout()
-        file_code = MusicFile.objects.get(original_name='music1.mp3').file.name[:-4]
+        file_code = MusicFile.objects.get(original_name='music1.mp3').data_file.name[:-4]
         
         # bad user
         response = self.client.get('/file/%s' % file_code)
@@ -130,16 +130,16 @@ class SingleFileTest(MusicHubTestCase):
     def test_big_file_download(self):
         size = 1024*1024*3 # 3 MB
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'file': make_file('music1.mp3', '.' * size)})
+        self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * size)})
         response = self.client.get(MusicFile.objects.get(original_name='music1.mp3').get_download_url())
         self.failUnlessEqual(response['Content-Length'], str(size))
         self.failUnlessEqual(len(response.content), size)
     
     def test_absolute_url(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
         music_file = MusicFile.objects.get(original_name='music1.mp3')
-        self.failUnlessEqual(music_file.get_absolute_url(), '/file/%s' % music_file.file.name[:-4])
+        self.failUnlessEqual(music_file.get_absolute_url(), '/file/%s' % music_file.data_file.name[:-4])
 
 class OtherPagesTest(MusicHubTestCase):
     def test_index(self):
@@ -149,7 +149,7 @@ class OtherPagesTest(MusicHubTestCase):
         self.failUnless('Latest uploads' in response.content)
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         for n in range(15):
-            self.client.post('/upload', {'file': make_file('music%d.mp3' % n, '..data..')})
+            self.client.post('/upload', {'data_file': make_file('music%d.mp3' % n, '..data..')})
         response = self.client.get('/')
         self.failUnlessEqual(response.status_code, 200)
         for n in range(5):
@@ -198,8 +198,8 @@ class LogFileTest(MusicHubTestCase):
         # TODO: test encoding of non-ascii characters
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         # upload
-        self.client.post('/upload', {'file': make_file('music1.mp3', '..data..')})
-        file_code = MusicFile.objects.get(original_name='music1.mp3').file.name[:-4]
+        self.client.post('/upload', {'data_file': make_file('music1.mp3', '..data..')})
+        file_code = MusicFile.objects.get(original_name='music1.mp3').data_file.name[:-4]
         self.failUnlessEqual(len(self.events), 1)
         event = self.events[0]
         self.failUnlessEqual(event['kind'], 'upload')
@@ -253,13 +253,13 @@ class QuotaTest(MusicHubTestCase):
         self.failUnlessEqual(get_disk_usage(self.gigel2), 0)
         self.failUnlessEqual(get_disk_usage(), 0)
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'file': make_file('music1.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(get_disk_usage(self.gigel), 10)
         self.failUnlessEqual(get_disk_usage(self.gigel2), 0)
         self.failUnlessEqual(get_disk_usage(), 10)
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
-        response = self.client.post('/upload', {'file': make_file('music2.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_file('music2.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(get_disk_usage(self.gigel), 10)
         self.failUnlessEqual(get_disk_usage(self.gigel2), 10)
@@ -267,22 +267,22 @@ class QuotaTest(MusicHubTestCase):
     
     def test_user_quota(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'file': make_file('music1.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
-        response = self.client.post('/upload', {'file': make_file('music2.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_file('music2.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
-        response = self.client.post('/upload', {'file': make_file('music3.mp3', '.' * 10)})
+        response = self.client.post('/upload', {'data_file': make_file('music3.mp3', '.' * 10)})
         self.failUnlessEqual(response.status_code, 200)
-        response = self.client.post('/upload', {'file': make_file('music4.mp3', '.' * 1)})
+        response = self.client.post('/upload', {'data_file': make_file('music4.mp3', '.' * 1)})
         self.failUnlessEqual(response.status_code, 400)
         self.failUnless('File upload failed: you have exceeded your quota' in response.content)
     
     def test_total_quota(self):
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        response = self.client.post('/upload', {'file': make_file('music1.mp3', '.' * 25)})
+        response = self.client.post('/upload', {'data_file': make_file('music1.mp3', '.' * 25)})
         self.failUnlessEqual(response.status_code, 200)
         self.client.logout()
         self.failUnless(self.client.login(username='gigel2', password='gigi'))
-        response = self.client.post('/upload', {'file': make_file('music2.mp3', '.' * 25)})
+        response = self.client.post('/upload', {'data_file': make_file('music2.mp3', '.' * 25)})
         self.failUnlessEqual(response.status_code, 500)
         self.failUnless('File upload failed: there is no more room on the server' in response.content)
