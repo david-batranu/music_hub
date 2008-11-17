@@ -1,23 +1,25 @@
-from localsettings import *
-
-TEMPLATE_DEBUG = DEBUG
+DEBUG = True
 
 ADMINS = (
-    ('MusicHub Admin', 'alex@grep.ro'),
+    ('MusicHub Admin', 'musichub@example.com'),
 )
 MANAGERS = ADMINS
-
-DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = MUSIC_HUB_FOLDER + 'db.sqlite'
 
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = False
+TIME_ZONE = 'Europe/Bucharest'
 
+MEDIA_URL = '/media/model-files/'
+ADMIN_MEDIA_PREFIX = '/media/admin/'
+
+from localsettings import *
+
+TEMPLATE_DEBUG = DEBUG
+
+DATABASE_ENGINE = 'sqlite3'
+DATABASE_NAME = MUSIC_HUB_FOLDER + 'db.sqlite'
 MEDIA_ROOT = MUSIC_HUB_FOLDER + 'files/'
-MEDIA_URL = '/files/'
-
-ADMIN_MEDIA_PREFIX = '/admin-media/'
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.app_directories.load_template_source',
