@@ -10,7 +10,7 @@ def _now():
 
 def log_event(kind, user, ip, txt):
     from django.conf import settings
-    message = "%s [%s] user: %s; %s\n" % (_now(), kind, user, txt)
+    message = "%s [%s] ip: %s; user: %s; %s\n" % (_now(), kind, ip, user, txt)
     f = open(settings.MUSIC_HUB_FOLDER + "events.log", 'a')
     f.write(message)
     f.close()
