@@ -260,6 +260,14 @@ class LogFileTest(MusicHubTestCase):
         self.failUnless('music1.mp3' in event['txt'])
         self.failUnless('code: %s' % song_code in event['txt'])
         self.failUnless('file_size: 8' in event['txt'])
+    
+    def test_proxy_ip(self):
+        client2 = Client(REMOTE_ADDR='127.0.0.1', HTTP_X_FORWARDED_FOR='1.2.3.4')
+        self.failUnless(client2.login(username='gigel', password='gigi'))
+        client2.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
+        song_code = Song.objects.get(original_name='music1.mp3').get_code()
+        event = self.events[0]
+        self.failUnlessEqual(event['ip'], '1.2.3.4')
 
 class QuotaTest(MusicHubTestCase):
     def setUp(self):

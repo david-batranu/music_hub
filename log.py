@@ -16,9 +16,10 @@ def log_event(kind, user, ip, txt):
     f.close()
 
 def _log_song_event(kind, request, song):
+    headers = request.META
     log_event(kind=kind,
         user="%s (%d)" % (quote(request.user.username), request.user.id),
-        ip=request.META['REMOTE_ADDR'],
+        ip=headers.get('HTTP_X_FORWARDED_FOR', headers['REMOTE_ADDR']),
         txt="original_filename: %s; code: %s; file_size: %d" % (
             quote(song.original_name), quote(song.get_code()), song.data_file.size)
     )
