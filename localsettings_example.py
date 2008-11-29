@@ -1,3 +1,5 @@
+MUSIC_HUB_MEDIA_PREFIX = '/media/music_hub/'
+
 MUSIC_HUB_FOLDER = '/var/local/music_hub/'
 MUSIC_HUB_USER_QUOTA = 1024 * 1024 * 100 # 100 MB
 MUSIC_HUB_TOTAL_QUOTA = 1024 * 1024 * 500 # 500 MB

@@ -1,12 +1,29 @@
+{% load music_hub_tags %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="/media/music_hub/main.css" type="text/css">
     <title>{% block title %}Music Hub{% endblock %}</title>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body id="main">
+    <div id="container">
+        <div id="wrap">
+            <div id="branding" class="clear">
+                <h1><a href="/" title="Music Hub">{% block title_h1 %}{% endblock %}</a></h1>
+                <a href="/upload" id="upload">Upload</a>
+            </div>
+            <div id="content" class="clear">
+{% block auth_box %}{% auth_box user %}{% endblock %}
 {% block body %}{% endblock %}
+            </div>
+            <div id="content_btm"></div>
+            <div id="footer">
+                <p>Valid <a title="Validate XHTML" href="http://validator.w3.org/check/referer">XHTML 1.0 Strict</a>, <a title="Validate CSS" href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a> | Powered by <a title="Learn about Django" href="http://www.djangoproject.com/">Django</a> | Design by <a title="Razvan Pavel" href="http://www.razvanpavel.com/">Razvan Pavel</a></p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

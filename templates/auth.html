@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block auth_box %}{% endblock %}
+
+{% block body %}
+
+<form action="/auth" method="POST">
+{% if user.is_anonymous %}
+    <input type="hidden" name="do" value="login" />
+    <fieldset id="login">
+        <legend>Log In</legend>
+        <ol>
+            {{ auth_form.as_ul }}
+            <li><label></label> <input type="submit" value="Log in" /></li>
+        </ol>
+    </fieldset>
+{% else %}
+    <input type="hidden" name="do" value="logout" />
+    <fieldset id="login">
+        <ol>
+            <legend>You are logged in as {{ user.username }}.</legend>
+            <li><label></label><input type="submit" value="Log out" /></li>
+        </ol>
+    </fieldset>
+{% endif %}
+</form>
+
+{% endblock %}

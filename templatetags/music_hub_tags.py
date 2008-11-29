@@ -4,6 +4,10 @@ from django.template.loader import render_to_string
 register = template.Library()
 
 @register.simple_tag
+def auth_box(user):
+    return render_to_string('tag_auth_box.html', {'user': None if user.is_anonymous() else user})
+
+@register.simple_tag
 def person_link(person):
     return render_to_string('tag_person_link.html', {'person': person, 'show_name': True})
 

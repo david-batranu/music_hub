@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from django.conf import settings
 
 from django.contrib import admin
 admin.autodiscover()
@@ -15,3 +16,13 @@ urlpatterns = patterns('',
     
     (r'^admin/(.*)', admin.site.root),
 )
+
+if settings.DEBUG:
+    import os
+    import music_hub
+    music_hub_media = os.path.dirname(music_hub.__file__) + '/media'
+    
+    urlpatterns += patterns('',
+        (r'^%s(?P<path>.*)$' % settings.MUSIC_HUB_MEDIA_PREFIX[1:],
+            'django.views.static.serve', {'document_root': music_hub_media})
+    )

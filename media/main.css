@@ -1,0 +1,275 @@
+@CHARSET "UTF-8";
+/***********************************
+site: music.grep.ro
+theme: lines
+author: Razvan Pavel
+contact: sfantupavel@gmail.com
+**********************************/
+/***********************************
+v1.0 | 20080212 
+Begin Meyer Resets
+**********************************/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+}
+/* remember to define focus styles! */
+:focus {
+	outline: 0;
+}
+body {
+	line-height: 1;
+	color: black;
+	background: white;
+}
+ol, ul {
+	list-style: none;
+}
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+	border-collapse: separate;
+	border-spacing: 0;
+}
+caption, th, td {
+	text-align: left;
+	font-weight: normal;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: "";
+}
+blockquote, q {
+	quotes: "" "";
+}
+/***********************************
+Begin basic structure/type styles
+**********************************/
+body {
+	background: url(img/bg_body.jpg) repeat-x #fff;
+	color: #224c87;
+	font: normal 1em Arial, Verdana;
+}
+#container {
+	background: url(img/bg_circles.png) center top no-repeat;
+}
+#wrap {
+	margin:0 auto;
+	width: 960px;
+}
+*:first-child+html #wrap{
+	width: 959px;
+}
+#content {
+	background: url(img/bg_content.png) repeat-y;
+	padding: 0 24px 17px 24px;
+	margin: 17px 0 0 0;
+}
+#content_btm {
+	background: url(img/content_btm.png) no-repeat;
+	height: 28px;
+	width: 960px;
+}
+a, a:visited {
+	color: #04bc00;
+}
+a:hover {
+	text-decoration: none;
+}
+/***********************************
+Begin branding styles
+**********************************/
+#branding {
+	height: 143px;
+}
+#main h1 {
+	float: left;
+}
+h1 {
+	padding: 30px 0 0 70px;
+}
+h1 a {
+	background: url(img/branding-h1.png) no-repeat;
+	display: block;
+	height: 90px;
+	text-indent: -9999px;
+	width: 240px;
+}
+#upload, #upload:visited {
+	background: url(img/upload.png) 0 0 no-repeat;
+	border: 5px solid #0078ff;
+	display: block;
+	float: right;
+	height: 23px;
+	padding: 0px;
+	margin: 60px 100px 0 0 ;
+	text-indent: -9999px;
+	width:178px;
+}
+#upload:hover {
+	background: url(img/upload.png) 0 -23px no-repeat;
+	border: 5px solid #04bc00;
+}
+/***********************************
+Begin content styles
+**********************************/
+#logout, #logout:visited {
+	color: #0078ff;
+	float: right;
+	font: bold 0.8em Arial;
+	padding: 2px;
+	text-decoration: none;
+	text-transform: lowercase;
+}
+#logout:hover {
+	background: #f00;
+	color: #fff;
+}
+h2 {
+	font: bold 1.2em Arial;
+	margin: 0 0 1em 0;
+}
+h3 {
+	font: bold 0.9em Arial;
+	margin: 2em 0 0.5em 0;
+}
+#songs {
+	font: normal 0.8em Arial;
+	width: 100%;
+}
+#songs li {
+	margin: 0 0 6px 0;
+	padding: 5px 0;
+}
+#songs li:hover {
+	background: #f1f1f1;
+}
+.ulink {
+	font-size: 0.85em;
+}
+.ulink a, .ulink a:visited {
+	text-decoration: none;
+}
+.ulink a:hover {
+	color: #224C87;
+}
+.dlink, .dlink:visited {
+	float: right;
+	padding: 2px;
+	text-decoration: none;
+}
+.dlink:hover {
+	background: #04BC00;
+	color: #fff;
+}
+#browse, #browse:visited {
+	color: #0078ff;
+	float: right;
+	font: bold 0.8em Arial;
+	padding: 2px;
+	text-decoration: none;
+	text-transform: lowercase;
+}
+#browse:hover {
+	background: #0078ff;
+	color: #fff;
+}
+#users {
+	font: normal 0.8em Arial;
+}
+#users li {
+	display: inline-block;
+	margin: 2px;
+}
+#users li a, #users li a:visited {
+	padding: 2px;
+	text-decoration: none;
+}
+#users li a:hover {
+	background: #04bc00;
+	color: #fff;
+}
+#users li span {
+	font: normal 0.7em Arial;
+}
+/***********************************
+Begin login form styles
+**********************************/
+fieldset {
+	border: 1px solid #eee;
+	display: block;
+	padding: 1em;
+	margin: 0 auto;
+	width: 300px;
+}
+fieldset legend {
+	font: bold 1.5em Arial;
+	padding: 0 5px;
+}
+fieldset li {
+	margin: 10px 0;
+}
+fieldset li label {
+	display: inline-block;
+	font-size: 0.9em;
+	width: 90px;
+}
+fieldset li input {
+	border: 1px solid #ddd;
+}
+fieldset li a small{
+	font-size: 0.6em;
+}
+/***********************************
+Begin footer styles
+**********************************/
+#footer {
+	padding: 0 10px;
+}
+#footer p{
+	color: #0078ff;
+	font: normal 0.7em Arial;
+	padding: 9px 0 0 0;
+	text-transform: lowercase;
+}
+#footer p a,#footer p a:visited {
+	color: #04bc00;
+	padding: 2px;
+	text-decoration: none;
+}
+#footer p a:hover {
+	background: #04bc00;
+	color: #fff;
+}
+/***********************************
+Others
+**********************************/
+.clear:after {
+	clear: both;
+	content: ".";
+	display: block;
+	height: 0px;
+	visibility: hidden;
+}
+.clear {
+	display: inline-block;
+}
+* html .clear {
+	height: 1%;
+}
+.clear {
+	display: block;
+}

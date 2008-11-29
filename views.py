@@ -1,4 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
+from django.template import RequestContext
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import HttpResponse, HttpResponseServerError, \
         HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseBadRequest
@@ -16,7 +17,7 @@ def index(request):
         'latest_uploads': latest_uploads,
         'logged_in': not isinstance(request.user, AnonymousUser),
         'people': people,
-    })
+    }, RequestContext(request))
 
 def upload(request):
     if isinstance(request.user, AnonymousUser):
@@ -37,11 +38,11 @@ def upload(request):
                     return HttpResponseServerError('File upload failed: there is '
                         'no more room on the server.')
             log_song_upload(request, song)
-            return render_to_response('song_upload_done.html', {})
+            return render_to_response('song_upload_done.html', {}, RequestContext(request))
     else:
         form = SongForm()
     
-    return render_to_response('song_upload.html', {'form': form})
+    return render_to_response('song_upload.html', {'form': form}, RequestContext(request))
 
 def delete(request):
     from django.core.exceptions import ObjectDoesNotExist
@@ -60,19 +61,19 @@ def delete(request):
     
     log_song_delete(request, song)
     song.delete()
-    return render_to_response('song_delete_done.html')
+    return render_to_response('song_delete_done.html', RequestContext(request))
 
 def person_page(request, username):
     user = get_object_or_404(User, username=username)
     songs = Song.objects.filter(owner=user)
-    return render_to_response('person_page.html', {'songs': songs})
+    return render_to_response('person_page.html', {'songs': songs}, RequestContext(request))
 
 def song_page(request, song_code):
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden('Only logged-in users can download songs.')
     
     song = get_object_or_404(Song, data_file='%s.mp3' % song_code)
-    return render_to_response('song_page.html', {'song': song})
+    return render_to_response('song_page.html', {'song': song}, RequestContext(request))
 
 def download_song(request, song_code):
     import os
@@ -105,13 +106,13 @@ def auth(request):
                 login(request, auth_form.get_user())
                 if request.session.test_cookie_worked():
                     request.session.delete_test_cookie()
-                return render_to_response('auth_logged_in.html', {'user': request.user})
+                return render_to_response('auth.html', {}, RequestContext(request))
         
         else:
             auth_form = AuthenticationForm()
         
         request.session.set_test_cookie()
-        return render_to_response('auth_login.html', {'auth_form': auth_form})
+        return render_to_response('auth.html', {'auth_form': auth_form}, RequestContext(request))
     
     else:
         if request.method == 'POST':
@@ -119,7 +120,7 @@ def auth(request):
                 return HttpResponseBadRequest('Logged-in users can only perform logout.')
             
             logout(request)
-            return render_to_response('auth_login.html', {'auth_form': AuthenticationForm()})
+            return render_to_response('auth.html', {'auth_form': AuthenticationForm()}, RequestContext(request))
         
         else:
-            return render_to_response('auth_logged_in.html', {'user': request.user})
+            return render_to_response('auth.html', {}, RequestContext(request))

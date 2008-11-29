@@ -1,0 +1,6 @@
+{% if user %}
+<a href="/auth" id="logout">[ Logout ]</a>
+<h2>Welcome {{ user.username }}</h2>
+{% else %}
+<a href="/auth" id="login">[ Login ]</a>
+{% endif %}

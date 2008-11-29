@@ -2,12 +2,15 @@
 {% load music_hub_tags %}
 
 {% block body %}
-<h1>File upload</h1>
 
 <form enctype="multipart/form-data" method="POST">
-<ul>
-{{ form.as_ul }}
-</ul>
-<input type="submit" value="upload">
+    <fieldset>
+        <legend>Upload</legend>
+        <ol>
+            {{ form.as_ul }}
+            <li><label></label> <input type="submit" value="Upload" /></li>
+        </ol>
+    </fieldset>
 </form>
+
 {% endblock %}
