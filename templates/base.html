@@ -14,7 +14,7 @@
         <div id="wrap">
             <div id="branding" class="clear">
                 <h1><a href="/" title="Music Hub">{% block title_h1 %}{% endblock %}</a></h1>
-                <a href="/upload" id="upload">Upload</a>
+                {% if not user.is_anonymous %}<a href="/upload" id="upload">Upload</a>{% endif %}
             </div>
             <div id="content" class="clear">
 {% block auth_box %}{% auth_box user %}{% endblock %}

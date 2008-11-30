@@ -78,6 +78,7 @@ def song_page(request, song_code):
 def download_song(request, song_code):
     import os
     from django.core.servers.basehttp import FileWrapper
+    from urllib import quote
     if isinstance(request.user, AnonymousUser):
         return HttpResponseForbidden('Only logged-in users can download songs.')
     
@@ -88,7 +89,7 @@ def download_song(request, song_code):
     wrapper = FileWrapper(file(data_file_path))
     
     response = HttpResponse(wrapper, content_type='audio/mpeg')
-    response['Content-Disposition'] = 'attachment; filename=%s' % song.original_name
+    response['Content-Disposition'] = 'attachment; filename=%s' % quote(song.original_name)
     response['Content-Length'] = os.path.getsize(data_file_path)
     return response
 

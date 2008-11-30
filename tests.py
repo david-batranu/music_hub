@@ -98,9 +98,9 @@ class SingleFileTest(MusicHubTestCase):
     def test_get_song(self):
         # upload the song
         self.failUnless(self.client.login(username='gigel', password='gigi'))
-        self.client.post('/upload', {'data_file': make_song('music1.mp3', '..data..')})
+        self.client.post('/upload', {'data_file': make_song('music 1.mp3', '..data..')})
         self.client.logout()
-        song_code = Song.objects.get(original_name='music1.mp3').get_code()
+        song_code = Song.objects.get(original_name='music 1.mp3').get_code()
         
         # bad user
         response = self.client.get('/song/%s' % song_code)
@@ -120,10 +120,10 @@ class SingleFileTest(MusicHubTestCase):
         response = self.client.get('/song/%s' % song_code)
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(response['Content-Type'], 'text/html; charset=utf-8')
-        self.failUnless('music1.mp3', response.content)
+        self.failUnless('music 1.mp3', response.content)
         response = self.client.get('/song/%s/download' % song_code)
         self.failUnlessEqual(response.status_code, 200)
-        self.failUnlessEqual(response['Content-Disposition'], 'attachment; filename=music1.mp3')
+        self.failUnlessEqual(response['Content-Disposition'], 'attachment; filename=music%201.mp3')
         self.failUnlessEqual(response['Content-Length'], '8')
         self.failUnlessEqual(response.content, '..data..')
     
@@ -156,11 +156,11 @@ class OtherPagesTest(MusicHubTestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.failUnless('Music hub' in response.content)
         self.failUnless('Latest uploads' in response.content)
-        self.failUnless('<a href="/auth">' in response.content)
+        self.failUnless('<a href="/auth"' in response.content)
         self.failIf('/upload' in response.content, 'the user must log in before he sees the "upload" link')
         self.failUnless(self.client.login(username='gigel', password='gigi'))
         response = self.client.get('/')
-        self.failUnless('<a href="/upload">' in response.content)
+        self.failUnless('<a href="/upload"' in response.content)
         for n in range(15):
             self.client.post('/upload', {'data_file': make_song('music%d.mp3' % n, '..data..')})
         response = self.client.get('/')
