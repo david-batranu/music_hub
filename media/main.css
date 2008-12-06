@@ -219,30 +219,30 @@ fieldset {
 /***********************************
 Begin login form styles
 **********************************/
-#login {
+#login-box {
 	border: 1px solid #eee;
 	display: block;
 	padding: 1em;
 	margin: 0 auto;
 	width: 300px;
 }
-#login ul {list-style-type: none;}
-#login legend {
+#login-box ul {list-style-type: none;}
+#login-box legend {
 	font: bold 1.5em Arial;
 	padding: 0 5px;
 }
-#login li {
+#login-box li {
 	margin: 10px 0;
 }
-#login li label {
+#login-box li label {
 	display: inline-block;
 	font-size: 0.9em;
 	width: 90px;
 }
-#login li input {
+#login-box li input {
 	border: 1px solid #ddd;
 }
-#login li a small{
+#login-box li a small{
 	font-size: 0.6em;
 }
 /***********************************

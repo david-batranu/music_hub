@@ -7,7 +7,7 @@
 <form action="/auth" method="POST">
 {% if user.is_anonymous %}
     <input type="hidden" name="do" value="login" />
-    <fieldset id="login">
+    <fieldset id="login-box">
         <legend>Log In</legend>
         <ol>
             {{ auth_form.as_ul }}
@@ -16,7 +16,7 @@
     </fieldset>
 {% else %}
     <input type="hidden" name="do" value="logout" />
-    <fieldset id="login">
+    <fieldset id="login-box">
         <legend>You are logged in as {{ user.username }}.</legend>
         <ul>
             <li>View <a href="/people/{{ user.username }}">your songs</a>.</li>
