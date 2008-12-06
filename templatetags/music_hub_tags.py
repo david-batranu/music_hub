@@ -21,3 +21,9 @@ def song_link(song, current_user=None):
         'song': song,
         'can_delete': current_user and current_user == song.owner,
     })
+
+@register.simple_tag
+def song_player(song):
+    return render_to_string('tag_song_player.html', {
+        'song': song,
+    })

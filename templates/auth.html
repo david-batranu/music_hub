@@ -17,10 +17,12 @@
 {% else %}
     <input type="hidden" name="do" value="logout" />
     <fieldset id="login">
-        <ol>
-            <legend>You are logged in as {{ user.username }}.</legend>
+        <legend>You are logged in as {{ user.username }}.</legend>
+        <ul>
+            <li>View <a href="/people/{{ user.username }}">your songs</a>.</li>
+            <li>View <a href="/">latest uploads</a>.</li>
             <li><label></label><input type="submit" value="Log out" /></li>
-        </ol>
+        </ul>
     </fieldset>
 {% endif %}
 </form>

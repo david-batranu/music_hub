@@ -15,7 +15,7 @@ a, abbr, acronym, address, big, cite, code,
 del, dfn, em, font, img, ins, kbd, q, s, samp,
 small, strike, strong, sub, sup, tt, var,
 dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
+#login, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td {
 	margin: 0;
 	padding: 0;
@@ -95,13 +95,13 @@ Begin branding styles
 #branding {
 	height: 143px;
 }
-#main h1 {
+#branding h1 {
 	float: left;
 }
-h1 {
+#branding h1 {
 	padding: 30px 0 0 70px;
 }
-h1 a {
+#branding h1 a {
 	background: url(img/branding-h1.png) no-repeat;
 	display: block;
 	height: 90px;
@@ -137,6 +137,10 @@ Begin content styles
 #logout:hover {
 	background: #f00;
 	color: #fff;
+}
+h1 {
+	font: bold 1.5em Arial;
+	margin: 0 0 1em 0;
 }
 h2 {
 	font: bold 1.2em Arial;
@@ -205,9 +209,6 @@ h3 {
 #users li span {
 	font: normal 0.7em Arial;
 }
-/***********************************
-Begin login form styles
-**********************************/
 fieldset {
 	border: 1px solid #eee;
 	display: block;
@@ -215,22 +216,33 @@ fieldset {
 	margin: 0 auto;
 	width: 300px;
 }
-fieldset legend {
+/***********************************
+Begin login form styles
+**********************************/
+#login {
+	border: 1px solid #eee;
+	display: block;
+	padding: 1em;
+	margin: 0 auto;
+	width: 300px;
+}
+#login ul {list-style-type: none;}
+#login legend {
 	font: bold 1.5em Arial;
 	padding: 0 5px;
 }
-fieldset li {
+#login li {
 	margin: 10px 0;
 }
-fieldset li label {
+#login li label {
 	display: inline-block;
 	font-size: 0.9em;
 	width: 90px;
 }
-fieldset li input {
+#login li input {
 	border: 1px solid #ddd;
 }
-fieldset li a small{
+#login li a small{
 	font-size: 0.6em;
 }
 /***********************************

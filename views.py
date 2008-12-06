@@ -89,7 +89,7 @@ def download_song(request, song_code):
     wrapper = FileWrapper(file(data_file_path))
     
     response = HttpResponse(wrapper, content_type='audio/mpeg')
-    response['Content-Disposition'] = 'attachment; filename=%s' % quote(song.original_name)
+    response['Content-Disposition'] = 'attachment; filename="%s"' % song.original_name.replace('"', '_')
     response['Content-Length'] = os.path.getsize(data_file_path)
     return response
 
